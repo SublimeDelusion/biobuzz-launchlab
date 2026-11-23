@@ -25,3 +25,23 @@
 #importItems{display:grid;gap:.5rem;margin:1rem 0;max-height:48vh;overflow:auto}
 #importItems small{color:#a6b8b9}
 #namedModels{margin-top:1rem}
+
+.team-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .65rem 1.5rem;
+}
+.team-footer-credit {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  color: var(--text);
+}
+.team-footer-credit img {
+  display: block;
+  border-radius: 50%;
+}
+.team-footer-credit strong { color: #ff8d32; }
+.team-footer-date time { color: var(--text); }

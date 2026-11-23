@@ -1,2 +1,3 @@
-# biobuzz-launchlab
-FTC 2026-27 BioBuzz Physics Lab by 17097 Protostars
+# BIOBUZZ Launch Lab
+
+FTC 2026–27 trajectory and turret configuration lab by Team 17097 Protostars.

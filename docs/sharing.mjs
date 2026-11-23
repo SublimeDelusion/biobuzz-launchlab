@@ -32,7 +32,7 @@ export function readShare(text,isCSV=false){
   return readItems(lab.setups,[{name:'Imported environment',ball:lab.ball,globals:lab.globals},...lab.models]);
  }
  if(data?.schema==='biobuzz-shooter-lab')return readItems(data.setups,[{name:'Imported environment',globals:newLab(data.current).globals}]);
- throw Error('Choose an exported Shooter Lab file.');
+ throw Error('Choose an exported Launch Lab file.');
 }
 
 export function addSharedItems(state,items,makeId){
