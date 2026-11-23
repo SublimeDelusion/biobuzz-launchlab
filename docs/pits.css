@@ -149,3 +149,37 @@
   .topbar .settings-toggle { padding-inline: 7px; font-size: 12px; }
   .topbar .settings-toggle svg { width: 16px; }
 }
+
+.ball-toggle input[value="pollen"]:checked + span { background: #f4d44d; color: #211900; }
+.ball-toggle input[value="nectar"]:checked + span { background: #dd5052; color: #130405; }
+.topbar .settings-toggle,
+.topbar .settings-toggle.active,
+.topbar .settings-toggle:hover { color: #fff; border-color: #fff; }
+.active-robot, .robot-name-field, .compare-dropdown {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: 13px;
+}
+.active-robot select, .robot-name-field input, .compare-dropdown select, #newRobotForm select {
+  min-width: 0;
+  background: #20292d;
+  border: 1px solid #536166;
+  border-radius: 6px;
+  padding: .45rem;
+  color: var(--text);
+}
+.active-robot select { max-width: 12rem; }
+.robot-name-field input { width: min(16rem, 50vw); }
+#robotDirty { color: #ffdd72; font-size: 19px; }
+#garageList, #transferItems { display: grid; gap: .55rem; margin: .85rem 0; overflow: auto; max-height: 43vh; }
+.dialog-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.dialog-heading h2 { margin: 0; }
+#newRobotForm { display: grid; gap: .6rem; }
+#newRobotForm h3 { margin: .35rem 0; }
+.ball-settings { display: grid; align-content: start; gap: 1rem; }
+@media (max-width: 650px) {
+  .topbar .header-actions { flex-wrap: wrap; justify-content: flex-end; }
+  .active-robot select { max-width: 9rem; }
+  .robot-name-field { width: 100%; }
+}

@@ -4,6 +4,7 @@ import {DESIGNS} from './mechanics.mjs';
 const modelKeys = [...GLOBAL_KEYS, 'materials'];
 export const exportSetup = setup => ({
  name:setup.name,
+ ...(typeof setup.robotId==='string'?{robotId:setup.robotId}:{}),
  params:Object.fromEntries(Object.entries(setup.params).filter(([key])=>!modelKeys.includes(key)))
 });
 export const bundle = (setups,models) => ({schema:'biobuzz-sharing',version:1,setups:setups.map(exportSetup),models});
@@ -15,11 +16,11 @@ function readItems(setups,models) {
   if(typeof name!=='string'||!name.trim()||!DESIGNS.some(d=>d.id===params?.design)||!Number.isFinite(params.rpm)||!Number.isFinite(params.angle))continue;
   const lab=labForBall(params.ball==='nectar'?'nectar':'pollen');
   loadSavedConfiguration(lab,params);
-  items.push({kind:'setup',value:{name:name.trim().slice(0,60),params:exportSetup({params:paramsFor(normalize(lab))}).params}});
+  items.push({kind:'setup',value:{name:name.trim().slice(0,60),robotId:typeof setup.robotId==='string'?setup.robotId.slice(0,100):undefined,params:exportSetup({params:paramsFor(normalize(lab))}).params}});
  }
  for(const model of Array.isArray(models)?models:[]){
   if(typeof model?.name!=='string'||!model.name.trim()||!model.globals||typeof model.globals!=='object')continue;
-  items.push({kind:'model',value:{name:model.name.trim().slice(0,60),ball:model.ball==='nectar'?'nectar':'pollen',globals:normalize({...labForBall(model.ball==='nectar'?'nectar':'pollen'),globals:model.globals}).globals}});
+  items.push({kind:'model',value:{name:model.name.trim().slice(0,60),scope:['field','ball'].includes(model.scope)?model.scope:undefined,ball:model.ball==='nectar'?'nectar':'pollen',globals:normalize({...labForBall(model.ball==='nectar'?'nectar':'pollen'),globals:model.globals}).globals}});
  }
  return items;
 }
