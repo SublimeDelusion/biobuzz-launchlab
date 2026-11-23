@@ -62,14 +62,15 @@ let controlSerial=0;function controls(keys,scope){return keys.map(k=>{const uid=
 function disclosure(label,body,key,open=false,extraClass=''){const saved=disclosureState[key];return `<details class="advanced ${extraClass}" data-disclosure="${esc(key)}" ${(saved??open)?'open':''}><summary><span>${label}</span><span class="disclosure-hint" aria-hidden="true"></span></summary>${body}</details>`;}
 function group(label,keys,scope='robot',open=false){return disclosure(label,controls(keys,scope),`${scope}:${state.active}:${label}`,open);}
 
-function wheelSection(outer=false){const dualKey=outer?'outerDual':'dual',dual=!!state.robots[state.active][dualKey];const title=state.active==='differential'?(outer?'Rear wheels':'Front wheel'):'Wheels',diameterKey=outer?'outerD':'wheelD',hardnessKey=outer?'outerDurometer':'durometer',depthKey=outer?'outerWheelDepth':'wheelDepth',selected=selectedWheelPreset(state.robots[state.active],outer),groups=[...new Set(WHEEL_CHOICES.map(q=>q.group))];return disclosure(title,`<div role="group" aria-label="${title}"><label class="wheel-preset-label">Wheel preset<select data-wheel-preset="${outer?'rear':'front'}" aria-label="${title} preset">${groups.map(group=>`<optgroup label="${group}">${WHEEL_CHOICES.filter(q=>q.group===group).map(q=>`<option value="${q.id}" ${selected===q.id?'selected':''}>${esc(q.label)}</option>`).join('')}</optgroup>`).join('')}<option value="custom" ${selected==='custom'?'selected':''}>Custom wheel</option></select></label><label class="toggle-line"><input type="checkbox" data-dual="${dualKey}" ${dual?'checked':''}> Dual wheels</label>${dual?controls([outer?'outerGap':'gap'],'robot'):''}${controls([diameterKey,hardnessKey,depthKey],'robot')}<datalist id="hardness-${hardnessKey}">${WHEEL_PRESETS.map(q=>`<option value="${q.shore}" label="${q.name}"></option>`).join('')}</datalist><p class="control-note">Rim size is the rigid center’s outside diameter. Wheel spacing is the clear gap between paired tires.</p></div>`,`${state.active}:wheel:${outer}`,true,'wheel-section');}
+function wheelSection(outer=false){const dualKey=outer?'outerDual':'dual',dual=!!state.robots[state.active][dualKey];const title=state.active==='differential'?(outer?'Rear wheels':'Front wheel'):'Wheels',diameterKey=outer?'outerD':'wheelD',hardnessKey=outer?'outerDurometer':'durometer',depthKey=outer?'outerWheelDepth':'wheelDepth',selected=selectedWheelPreset(state.robots[state.active],outer),groups=[...new Set(WHEEL_CHOICES.map(q=>q.group))];return disclosure(title,`<div role="group" aria-label="${title}"><label class="wheel-preset-label">Wheel preset<select data-wheel-preset="${outer?'rear':'front'}" aria-label="${title} preset">${groups.map(group=>`<optgroup label="${group}">${WHEEL_CHOICES.filter(q=>q.group===group).map(q=>`<option value="${q.id}" ${selected===q.id?'selected':''}>${esc(q.label)}</option>`).join('')}</optgroup>`).join('')}<option value="custom" ${selected==='custom'?'selected':''}>Custom wheel</option></select></label><label class="toggle-line"><input type="checkbox" data-dual="${dualKey}" ${dual?'checked':''}> Dual wheels</label>${dual?controls([outer?'outerGap':'gap'],'robot'):''}${controls([diameterKey,hardnessKey,depthKey],'robot')}<datalist id="hardness-${hardnessKey}">${WHEEL_PRESETS.map(q=>`<option value="${q.shore}" label="${q.name}"></option>`).join('')}</datalist><p class="control-note">Rim size is the rigid center’s outside diameter. Wheel spacing is the clear gap between paired tires.</p></div>`,`pit-panel:${state.active}:wheel:${outer}`,false,'wheel-section');}
 
 function syncWheelPresets(){$$('[data-wheel-preset]').forEach(el=>el.value=selectedWheelPreset(state.robots[state.active],el.dataset.wheelPreset==='rear'));}
 
 function renderControls(){const d=state.active,r=state.robots[d];$('#sharedRobotHeight').innerHTML=controls(['height'],'robot');
- let html=controls(['rpm','angle'],'range')+controls(['throatGap'],'robot');
+ $('#pitLaunchControls').innerHTML=controls(['rpm','angle'],'range')+controls(['throatGap'],'robot');
+ let html='';
  if(d==='differential')html+=controls(['gearRatio'],'robot')+'<div class="ratio-presets" aria-label="Rear to front gear presets">'+[1,1.5,2,3,4].map(g=>`<button data-gear="${g}">${g}:1</button>`).join('')+'</div>'+wheelSection(true)+wheelSection()+'<p id="gearNote" class="control-note"></p>';
- else html+=wheelSection()+(d==='spring'?group('Spring carriage',['springPreload','springK','springTravel','rampLength','rampEnd'],'robot')+disclosure('Flywheel inertia',`<label class="toggle-line"><input id="flywheel" type="checkbox" ${r.flywheel?'checked':''}> Add two 82 mm flywheel discs</label><p class="control-note">Stores rotational energy to reduce wheel slowdown during a shot. Uses estimated inertia and motor recovery, not a measured torque curve.</p><p id="flywheelNote" class="control-note"></p>`,state.active+':flywheel'):group('Hood shape',['hoodRadius','arc'],'robot'))+disclosure('Guide surface',`<div class="surface-presets">${Object.entries(presets).map(([key,preset])=>`<button type="button" data-surface="${key}" class="${r.surface===key?'active':''}" aria-pressed="${r.surface===key}">${esc(preset.name)}</button>`).join('')}</div><p id="guideEffectNote" class="control-note"></p>`,d+':guide-surface',true)+group('Contact estimates',['muWheel','muBack',...(r.surface==='tape'?['stripWidth','stripSpacing']:r.surface==='rails'?['railWidth','railSpacing']:[])],'robot');
+ else html+=wheelSection()+(d==='spring'?group('Spring carriage',['springPreload','springK','springTravel','rampLength','rampEnd'],'robot')+disclosure('Flywheel inertia',`<label class="toggle-line"><input id="flywheel" type="checkbox" ${r.flywheel?'checked':''}> Add two 82 mm flywheel discs</label><p class="control-note">Stores rotational energy to reduce wheel slowdown during a shot. Uses estimated inertia and motor recovery, not a measured torque curve.</p><p id="flywheelNote" class="control-note"></p>`,state.active+':flywheel'):group('Hood shape',['hoodRadius','arc'],'robot'))+disclosure('Guide surface',`<div class="surface-presets">${Object.entries(presets).map(([key,preset])=>`<button type="button" data-surface="${key}" class="${r.surface===key?'active':''}" aria-pressed="${r.surface===key}">${esc(preset.name)}</button>`).join('')}</div><p id="guideEffectNote" class="control-note"></p>`,'pit-panel:'+d+':guide-surface')+group('Contact estimates',['muWheel','muBack',...(r.surface==='tape'?['stripWidth','stripSpacing']:r.surface==='rails'?['railWidth','railSpacing']:[])],'robot');
  $('#pitControls').innerHTML=html+'<p id="gapNote" class="control-note"></p>';
  $('#targetControls').innerHTML=controls(['distance'],'range');$('#primaryControls').innerHTML=controls(['rpm','angle'],'range')+(d==='differential'?'<p id="rangeGearReadout" class="control-note"></p>':'');$('#modified').textContent='LIVE';renderRobotSummary();
  $('#globalControls').innerHTML=controls(FIELD_PROPERTIES.filter(key=>key!=='materials'),'global');
@@ -165,10 +166,11 @@ function renderRobotOptions(){
  const select=$('#activeRobot');
  select.innerHTML=garage.map(bot=>`<option value="${esc(bot.id)}">${esc(bot.draftName||'Untitled bot')}</option>`).join('');
  select.value=activeRobot.id;
- const ammo=$('#rangeAmmo');
- ammo.innerHTML=BALLS.map(ball=>`<option value="${ball}" ${activeRobot.enabled[ball]?'':'disabled'}>${ballName(ball)}</option>`).join('');
- ammo.disabled=availableAmmo(activeRobot).length===1;
- ammo.value=rangeAmmo(activeRobot,state.ball);
+ const currentAmmo=rangeAmmo(activeRobot,state.ball);
+ $$('#rangeAmmo input').forEach(input=>{
+  input.checked=input.value===currentAmmo;
+  input.disabled=!activeRobot.enabled[input.value];
+ });
  const compare=$('#traceRobot');
  compare.innerHTML='<option value="">None</option>'+garage.filter(bot=>bot.id!==activeRobot.id&&savedAmmo(bot,state.ball)).map(bot=>`<option value="${esc(bot.id)}">${esc(bot.name)}</option>`).join('');
  compare.value=[...compare.options].some(option=>option.value===traceIds[state.ball])?traceIds[state.ball]:'';
@@ -247,7 +249,12 @@ function exportChecklist(){
  showTransfer('export',[...robots,...models.map(model=>({label:model.name,models:[model],checked:!!model.scope}))]);
 }
 $('#pitImport').onclick=()=>$('#importFile').click();
-$('#pitExport').onclick=exportChecklist;
+$('#exportBot').onclick=()=>{
+ const bot=activeRobot;
+ const setups=BALLS.filter(ball=>bot.saved[ball]).map(ball=>({name:bot.name,robotId:bot.id,enabled:bot.savedEnabled[ball],params:{...bot.saved[ball],ball}}));
+ if(!setups.length){toast('Save this bot before exporting.');return;}
+ download('biobuzz-bot.json',JSON.stringify(bundle(setups,[]),null,2),'application/json');
+};
 $('#importTop').onclick=()=>$('#importFile').click();
 $('#exportTop').onclick=exportChecklist;
 $('#importFile').onchange=async e=>{
@@ -322,10 +329,13 @@ function botListLabel(bot){
 }
 function renderGarage(){
  const list=$('#garageList');
+ const scrollTop=list.scrollTop;
  const focused=list.contains(document.activeElement)?document.activeElement.dataset.pickBot:null;
- list.innerHTML=garage.map(bot=>`<button type="button" class="bot-list-row" data-pick-bot="${esc(bot.id)}" aria-pressed="${bot===activeRobot}">${botListLabel(bot)}</button>`).join('');
- if(focused)[...list.querySelectorAll('[data-pick-bot]')].find(button=>button.dataset.pickBot===focused)?.focus();
+ list.innerHTML=garage.map(bot=>`<button type="button" class="bot-list-row" data-pick-bot="${esc(bot.id)}" aria-pressed="${bot===activeRobot}" title="${esc(bot.draftName||'Untitled bot')}">${botListLabel(bot)}</button>`).join('');
+ if(focused)[...list.querySelectorAll('[data-pick-bot]')].find(button=>button.dataset.pickBot===focused)?.focus({preventScroll:true});
+ list.scrollTop=scrollTop;
  $('#saveConfig').disabled=!botDirty(activeRobot);
+ $('#exportBot').disabled=!BALLS.some(ball=>activeRobot.saved[ball]);
 }
 $('#addBot').onclick=()=>$('#garageDialog').showModal();
 $('#closeGarage').onclick=()=>$('#garageDialog').close();
@@ -406,4 +416,5 @@ $('#restorePhysics').onclick=()=>{
  toast('Shared physics defaults restored.');
 };
 try{scene=new CinematicScene($('#viewport'));scene.mechanicalRenderer=drawMechanism;scene.ghost=false;pitView=new PitCutaway($('#pitCutaway'));}catch(err){console.error('Mechanical views:',err);toast('The animation view is unavailable.');}
+$('#ammoConfig details').open=Boolean(disclosureState['pit:launch']);
 renderCard();renderControls();update();renderCompare();requestAnimationFrame(tick);

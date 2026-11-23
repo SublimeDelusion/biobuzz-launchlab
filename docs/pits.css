@@ -246,3 +246,100 @@
 @media (min-width: 901px) {
   .garage-layout > .bot-sidebar { position: sticky; top: 78px; }
 }
+
+.garage-layout > .bot-sidebar {
+  position: static;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  align-self: stretch;
+  min-width: 0;
+  min-height: 0;
+  padding: 12px;
+}
+.bot-sidebar-title {
+  margin: 0;
+  padding: 5px 8px 10px;
+  border-bottom: 1px solid var(--line);
+  color: #f4d44d;
+  font-size: 16px;
+}
+#garageList.bot-list, #savedSetups.bot-list {
+  align-content: start;
+  max-height: 42vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.bot-list-row > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bot-list-row { font-size: 14px; }
+.bot-sidebar-actions { padding: 8px 0 0; border-top: 1px solid var(--line); }
+.pit-config-actions button:disabled { opacity: .45; cursor: default; }
+.pit-config-actions #deleteBot:hover { color: #ff8b8b; }
+
+.range-controls { display: grid; align-content: start; gap: 14px; min-width: 0; }
+.range-selection-card {
+  padding: 17px 20px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+}
+.range-selection-card h2 { margin: 0 0 12px; font-size: 18px; }
+.range-bot-label, .range-ammo-label {
+  display: grid;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.range-bot-label select {
+  width: 100%;
+  padding: 7px 9px;
+  background: #20292d;
+  color: var(--text);
+  border: 1px solid #536166;
+  border-radius: 6px;
+}
+.range-ammo-label { margin-top: 10px; }
+.range-ammo-label .ball-toggle { width: fit-content; }
+.ball-toggle input:disabled + span { opacity: .42; cursor: not-allowed; }
+
+@media (min-width: 1100px) and (min-height: 690px) {
+  body:has(#pits.active) {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    height: 100dvh;
+  }
+  body:has(#pits.active) > main { width: 100%; height: 100%; margin-block: 0; padding-block: 12px; }
+  body:has(#pits.active) > footer { padding-block: 6px; }
+  #pits.active { display: grid; grid-template-rows: auto minmax(0, 1fr); height: 100%; }
+  #pits .pit-heading { margin: 0 0 12px; }
+  #pits .pit-heading h1 { font-size: 32px; margin: 2px 0; }
+  #pits .garage-layout,
+  #pits .turret-card,
+  #pits .pit-grid,
+  #pits .pit-visuals { min-height: 0; }
+  #pits .turret-card { display: grid; grid-template-rows: auto auto minmax(0, 1fr); overflow: hidden; }
+  #pits .turret-card-head { padding-block: 10px; }
+  #pits .pit-setup-toolbar { padding-block: 8px; }
+  #pits .pit-grid { align-items: stretch; }
+  #pits .pit-visuals {
+    position: static;
+    grid-template-rows: minmax(0, 1fr) auto auto;
+    align-content: stretch;
+    gap: 8px;
+  }
+  #pits .mechanical-view { display: flex; flex-direction: column; min-height: 0; }
+  #pits #pitCutaway { flex: 1 1 auto; min-height: 0; height: auto; }
+  #pits .pit-controls { min-height: 0; max-height: none; overflow-y: auto; scrollbar-width: thin; }
+  #garageList.bot-list { min-height: 0; max-height: none; }
+}
+@media (max-width: 900px) {
+  #garageList.bot-list, #savedSetups.bot-list { max-height: 12rem; }
+}
+@media (min-width: 1100px) and (min-height: 690px) {
+  #pits .garage-layout { grid-template-rows: minmax(0, 1fr); }
+  #pits .turret-card { align-self: stretch; }
+}

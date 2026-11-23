@@ -10,18 +10,14 @@
 <section id="pits" class="panel active">
 <div class="pit-heading"><div><span class="eyebrow">THE PITS / FTC 17097</span><h1>Build the shot.</h1><p>Configure a bot and take it to the field.</p></div></div>
 <div class="garage-layout">
- <details class="bot-sidebar" open>
-  <summary>Bots</summary>
+ <aside class="bot-sidebar" aria-labelledby="pitBotTitle">
+  <h2 class="bot-sidebar-title" id="pitBotTitle">Bots</h2>
   <div id="garageList" class="bot-list" aria-label="Pick a bot"></div>
   <div class="bot-sidebar-actions">
    <button id="addBot" type="button" class="button">New bot</button>
-   <button id="deleteBot" type="button" class="button">Delete</button>
-  </div>
-  <div class="bot-sidebar-actions">
    <button id="pitImport" type="button" class="button">Import</button>
-   <button id="pitExport" type="button" class="button">Export</button>
   </div>
- </details>
+ </aside>
 <article class="turret-card"><div class="turret-card-head"><div><span id="designTag" class="eyebrow"></span><h2 id="designName"></h2><p id="designDescription"></p></div><div class="card-edition"><small>MECHANICAL STUDY</small></div></div>
 <div class="pit-setup-toolbar"><div class="robot-name-field">
   <label for="robotName">Bot name</label>
@@ -30,6 +26,12 @@
 </div><div class="pit-config-actions" role="group" aria-label="Bot actions">
   <button type="button" id="saveConfig" class="button" aria-label="Save bot" title="Save bot">
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 3h13l4 4v13a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M7 3v6h9V3M7 21v-8h10v8"/></svg>
+  </button>
+  <button type="button" id="exportBot" class="button" aria-label="Export bot" title="Export bot">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M5 13v7a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7"/></svg>
+  </button>
+  <button type="button" id="deleteBot" class="button" aria-label="Delete bot" title="Delete bot">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18m-2 0-1 14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1L5 6m4 0V3h6v3m-5 4v7m4-7v7"/></svg>
   </button>
   <button type="button" id="takeRange" class="launch-button">Take to Range</button>
 </div></div>
@@ -41,15 +43,12 @@
  <label class="toggle-line ammo-enabled"><input id="ammoEnabled" type="checkbox"><span id="ammoEnabledLabel">Enable Pollen</span></label>
  <div id="ammoConfig">
   <label class="ammo-design">Launcher type <select id="ammoDesign"></select></label>
-  <div id="sharedRobotHeight"></div>
+  <details class="advanced" data-disclosure="pit:launch"><summary><span>Launch settings</span><span class="disclosure-hint" aria-hidden="true"></span></summary><div id="sharedRobotHeight"></div><div id="pitLaunchControls"></div></details>
   <div id="pitControls"></div>
  </div>
 </aside></div></article></div></section>
 <section id="simulator" class="panel">
-<div class="pagehead"><div><div class="eyebrow">THE RANGE <span>/</span> <span id="rangeDesign">ORIGINAL CURVED HOOD</span></div><h1>Test your turret</h1><p>One shot. From wheel contact to the tilted HIVE.</p></div><div class="range-pickers">
- <label>Bot <select id="activeRobot" aria-label="Bot at the Range"></select></label>
- <label>Ammo <select id="rangeAmmo" aria-label="Ammo at the Range"></select></label>
-</div></div>
+<div class="pagehead"><div><div class="eyebrow">THE RANGE <span>/</span> <span id="rangeDesign">ORIGINAL CURVED HOOD</span></div><h1>Test your turret</h1><p>One shot. From wheel contact to the tilted HIVE.</p></div></div>
 <div class="workspace"><div class="visual-column"><div class="viewport-card">
 <div class="viewport-toolbar cinematic-toolbar"><div class="shot-stages" aria-label="Shot phases"><span data-stage="contact" class="active">Contact</span><i></i><span data-stage="flight">Flight</span><i></i><span data-stage="basket">Basket</span></div><span class="speed-badge" id="speedReadout" aria-label="Current playback speed">0.05×</span></div>
 <div id="viewport" aria-label="Continuous 2D shot playback"><div class="scene-title"><span id="viewTitle">TURRET CONTACT</span><small id="sceneScale">One timeline · physical seconds · SI world coordinates</small></div><div class="live-state"><span id="liveVelocity">0.3 m/s</span><span id="liveSpin">0 RPM</span></div><div id="interactionNote" class="interaction-note">Wheel contact · uncalibrated model</div><div id="renderError" hidden>Animation is unavailable. Physics controls and results remain available.</div></div>
@@ -58,15 +57,26 @@
 </div>
 <div class="metric-grid"><article class="metric"><div>EXIT VELOCITY <span class="metric-icon">↗</span></div><strong id="exitSpeed">–</strong><small id="exitMetric">–</small></article><article class="metric"><div><span id="spinLabel">BACKSPIN</span> <span class="metric-icon">⟳</span></div><strong id="spinRpm">–</strong><small id="spinRatio">–</small></article><article class="metric"><div>APEX HEIGHT</div><strong id="apex">–</strong><small>Above field tiles</small></article><article class="metric"><div>OPENING CLEARANCE</div><strong id="clearance">–</strong><small id="clearanceNote">Full ball, through tilted plane</small></article></div>
 </div>
-<aside class="control-card"><div class="control-title"><div><span class="eyebrow">MATCH CONTROLS</span><h2>Tune the shot</h2></div><span class="tiny-pill" id="modified">LIVE</span></div><div class="control-scroll"><div class="section-label">TARGETING</div><div id="targetControls"></div><div class="fixed-field-note">HIVE fixed from FIRST CAD · 30° scoring pose.</div><div class="section-label">TURRET</div><div id="primaryControls"></div>
+<aside class="range-controls">
+ <section class="range-selection-card" aria-labelledby="rangeBotTitle">
+  <h2 id="rangeBotTitle">Select your bot</h2>
+  <label class="range-bot-label">Bot <select id="activeRobot" aria-label="Bot at the Range"></select></label>
+  <div class="range-ammo-label"><span>Ammo</span>
+   <div id="rangeAmmo" class="ball-toggle" role="group" aria-label="Ammo at the Range">
+    <label><input type="radio" name="rangeAmmo" value="pollen" checked><span>Pollen</span></label>
+    <label><input type="radio" name="rangeAmmo" value="nectar"><span>Nectar</span></label>
+   </div>
+  </div>
+ </section>
+ <section class="control-card"><div class="control-title"><div><span class="eyebrow">MATCH CONTROLS</span><h2>Tune the shot</h2></div><span class="tiny-pill" id="modified">LIVE</span></div><div class="control-scroll"><div class="section-label">TARGETING</div><div id="targetControls"></div><div class="fixed-field-note">HIVE fixed from FIRST CAD · 30° scoring pose.</div><div class="section-label">TURRET</div><div id="primaryControls"></div>
 <div class="range-robot-summary" id="rangeRobotSummary"></div><button class="button" id="editRobot">Configure in The Pits</button>
-</div><div class="control-footer"><span class="yellow-dot"></span> Predictions need real-world calibration.</div></aside></div>
+</div><div class="control-footer"><span class="yellow-dot"></span> Predictions need real-world calibration.</div></section></aside></div>
 <div class="analysis-row"><article class="chart-card"><div class="card-header"><div><div class="eyebrow">FLIGHT ANALYSIS</div><h2>Follow the trajectory</h2></div><div class="legend"><span class="current-key">Current</span><span id="traceLegend" class="baseline-key" hidden>Comparison</span></div></div><svg id="trajectory" viewBox="0 0 800 270" role="img" aria-label="Side-view trajectory graph with horizontal distance and height in meters"></svg><div class="chart-footer"><span id="rangeText"></span><span id="crossingText"></span></div></article><article class="insight-card"><div class="eyebrow">SHOT DIAGNOSTIC</div><h2 id="shotStatus">Opening entry</h2><div id="statusDescription"></div><div class="insight-rule"></div><h3>Why the backspin?</h3><p id="spinExplanation"></p><button class="text-button" id="openModel">Inspect the contact model</button></article></div>
 </section>
 <section id="compare" class="panel">
  <div class="pagehead"><div><h1>Compare bots</h1><p id="comparisonSelectionNote" class="muted" aria-live="polite"></p></div></div>
  <div class="garage-layout">
-  <details class="bot-sidebar" open><summary>Bots</summary><div id="savedSetups" class="bot-list"></div></details>
+  <aside class="bot-sidebar" aria-labelledby="compareBotTitle"><h2 class="bot-sidebar-title" id="compareBotTitle">Bots</h2><div id="savedSetups" class="bot-list"></div></aside>
   <div class="comparison-wrap"><table id="comparisonTable"></table></div>
  </div>
 </section>
