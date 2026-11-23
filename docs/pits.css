@@ -85,3 +85,67 @@
 }
 .team-footer-credit strong { color: #ff8d32; }
 .team-footer-date time { color: var(--text); }
+
+.ball-toggle { gap: 2px; }
+.ball-toggle span {
+  background: #2a3336;
+  color: #b5c0c2;
+  font-weight: 600;
+}
+.ball-toggle input:checked + span { background: var(--lime); color: #1a2110; }
+.topbar .settings-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: auto;
+  padding: 0 10px;
+  background: #22292d;
+  border-color: #526065;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.pit-config-actions {
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-left: auto;
+  white-space: nowrap;
+}
+.pit-config-actions .pit-setup-loader {
+  position: relative;
+  flex: none;
+  width: auto;
+  margin: 0;
+}
+.pit-setup-loader svg {
+  position: absolute;
+  left: 8px;
+  pointer-events: none;
+}
+.pit-config-actions .pit-setup-loader select {
+  width: 88px;
+  height: 100%;
+  padding: 7px 21px 7px 30px;
+  font-size: 13px;
+  background-color: #22292d;
+  border-color: #425055;
+}
+.pit-config-actions .button,
+.pit-config-actions .launch-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  width: auto;
+  min-height: 36px;
+  padding: 7px 10px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+@media (max-width: 420px) {
+  .topbar .settings-toggle { padding-inline: 7px; font-size: 12px; }
+  .topbar .settings-toggle svg { width: 16px; }
+}
