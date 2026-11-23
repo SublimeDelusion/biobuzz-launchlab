@@ -20,8 +20,48 @@
 
 .compare-layout{display:grid;grid-template-columns:340px minmax(0,1fr);gap:20px;align-items:start}.compare-layout .comparison-wrap{position:sticky;top:80px;align-self:start}.compare-layout .setup-row{flex-wrap:wrap;gap:10px;padding:14px}.compare-layout .setup-row-name{flex-basis:calc(100% - 110px)}.compare-layout .inline-actions{width:100%}.compare-layout .button{font-size:13px}.setup-compare:has(input:disabled){color:var(--muted);cursor:default}@media(max-width:1050px){.compare-layout{grid-template-columns:1fr}.compare-layout .comparison-wrap{position:static;order:-1}.compare-layout .setup-row-name{flex-basis:auto}.compare-layout .inline-actions{width:auto;margin-left:auto}}
 
-.ball-picker{display:flex;align-items:center;gap:.4rem;font-size:.85rem}
-.ball-picker select{color:var(--text,#e5ecea);background:#19282b;border:1px solid var(--line);border-radius:5px;padding:.35rem}
+.ball-toggle {
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  background: #101719;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.ball-toggle label { position: relative; cursor: pointer; }
+.ball-toggle input { position: absolute; opacity: 0; }
+.ball-toggle span {
+  display: block;
+  padding: 7px 10px;
+  border-radius: 5px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+.ball-toggle input:checked + span { background: #303b2c; color: var(--lime); }
+.ball-toggle input:focus-visible + span { outline: 2px solid var(--lime); }
+.topbar .settings-toggle {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+}
+.topbar .settings-toggle.active,
+.topbar .settings-toggle:hover { color: var(--lime); border-color: var(--lime); }
+.pit-config-actions { display: flex; gap: .6rem; align-items: flex-end; flex-wrap: wrap; }
+.settings-sharing { margin-bottom: 1rem; }
+@media (max-width: 760px) {
+  .pit-config-actions { width: 100%; }
+  .pit-config-actions .pit-setup-loader { flex: 1 1 180px; }
+}
+@media (max-width: 400px) {
+  .ball-toggle span { padding-inline: 5px; font-size: 12px; }
+  .topbar .settings-toggle { width: 33px; height: 35px; }
+}
 #importItems{display:grid;gap:.5rem;margin:1rem 0;max-height:48vh;overflow:auto}
 #importItems small{color:#a6b8b9}
 #namedModels{margin-top:1rem}
