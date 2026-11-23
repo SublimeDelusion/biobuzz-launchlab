@@ -6,7 +6,7 @@ export function reconcileSetups(state){
  const baseline=state.reference?.id;state.comparisonIds=[...new Set(Array.isArray(state.comparisonIds)?state.comparisonIds:[])].filter(id=>used.has(id)&&id!==baseline).slice(0,MAX_COMPARISONS);
  return state;
 }
-export function comparisonColumns(state,current,teamDefault){reconcileSetups(state);return [{name:state.reference?.name??'Team default',role:'Baseline',params:state.reference?.params??teamDefault},{name:'Current',role:'Current',params:current},...state.comparisonIds.map(id=>({...state.setups.find(q=>q.id===id),role:'Saved'}))];}
+export function comparisonColumns(state,current,teamDefault){reconcileSetups(state);return [{name:state.reference?.name??'Curved Hood · 4,000 RPM · 70°',role:'Baseline',params:state.reference?.params??teamDefault},{name:'Current',role:'Current',params:current},...state.comparisonIds.map(id=>({...state.setups.find(q=>q.id===id),role:'Saved'}))];}
 export function selectComparison(state,id,checked){reconcileSetups(state);if(!state.setups.some(q=>q.id===id)||state.reference?.id===id)return false;const ids=state.comparisonIds;if(!checked){state.comparisonIds=ids.filter(q=>q!==id);return true;}if(ids.includes(id))return true;if(ids.length>=MAX_COMPARISONS)return false;ids.push(id);return true;}
 export function chooseBaseline(state,id){reconcileSetups(state);if(id===null){state.reference=null;return true;}const setup=state.setups.find(q=>q.id===id);if(!setup)return false;state.reference=copy(setup);state.comparisonIds=state.comparisonIds.filter(q=>q!==id);return true;}
 export function sameConfiguration(a,b,keys){return keys.every(k=>JSON.stringify(a[k])===JSON.stringify(b[k]));}
