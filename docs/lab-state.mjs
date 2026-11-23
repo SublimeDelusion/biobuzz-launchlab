@@ -79,9 +79,16 @@ export function competitionHoodSetup(){
 }
 
 export function labForBall(ball='pollen'){
- const lab=newLab(ball==='nectar'?{ballD:3.6,mass:41.3,inertia:2/3}:{});
- lab.ball=ball;
  const nectar=ball==='nectar';
+ // Observed Default - Butte, supplied by Team 17097 for Pollen.
+ const model=nectar?{ballD:3.6,mass:41.3,inertia:2/3}:{
+  restitution:.45,
+  wallFriction:.25,
+  impactDamping:.2,
+  ballGrip:1.1
+ };
+ const lab=newLab(model);
+ lab.ball=ball;
  lab.robots.original.dual=0;
  const starters={
   original:[nectar?6000:5400,nectar?65:70],
