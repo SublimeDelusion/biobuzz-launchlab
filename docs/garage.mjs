@@ -46,3 +46,28 @@ export function robotDirty(robot,ball){
  const current=robot.drafts[ball];
  return Object.keys(current).some(key=>key!=='compression'&&key!=='throatInterference'&&JSON.stringify(current[key])!==JSON.stringify(saved[key]));
 }
+
+export function initializeAmmo(bot){
+ const inferred=Object.fromEntries(BALLS.map(ball=>[ball,Boolean(bot.saved[ball])]));
+ bot.enabled??=BALLS.some(ball=>inferred[ball])?{...inferred}:{pollen:true,nectar:false};
+ bot.savedEnabled??=inferred;
+}
+
+export function availableAmmo(bot){
+ return BALLS.filter(ball=>bot.enabled[ball]);
+}
+
+export function rangeAmmo(bot,preferred){
+ const available=availableAmmo(bot);
+ return available.includes(preferred)?preferred:available[0];
+}
+
+export function botDirty(bot){
+ return bot.name!==bot.draftName||BALLS.some(ball=>
+  bot.enabled[ball]!==bot.savedEnabled[ball]||bot.enabled[ball]&&robotDirty(bot,ball)
+ );
+}
+
+export function savedAmmo(bot,ball){
+ return bot.savedEnabled[ball]&&bot.saved[ball];
+}

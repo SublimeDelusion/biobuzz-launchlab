@@ -1,4 +1,4 @@
-import {BALLS,BALL_PROPERTIES,FIELD_PROPERTIES,pickProperties,captureRobot,makeRobot,migrateGarage,robotFromSetup,robotDirty} from './garage.mjs';
+import {BALLS,BALL_PROPERTIES,FIELD_PROPERTIES,pickProperties,captureRobot,makeRobot,migrateGarage,robotFromSetup,initializeAmmo,availableAmmo,rangeAmmo,botDirty,savedAmmo} from './garage.mjs';
 import {bundle,readShare} from './sharing.mjs';
 import {MAX_COMPARISONS} from './saved-setups.mjs';
 import {CONTACT_MODEL} from './impact-materials.mjs';
@@ -23,6 +23,7 @@ for(const ball of Object.keys(profiles)){
 }
 state=profiles[read('biobuzz-active-ball','pollen')==='nectar'?'nectar':'pollen'];
 const garage = savedGarage?.robots?.length?savedGarage.robots:migrateGarage(profiles);
+garage.forEach(initializeAmmo);
 let activeRobot=garage.find(robot=>robot.id===(savedGarage?.activeRobotId??state.active))??garage[0];
 const traceIds=savedGarage?.traceIds??Object.fromEntries(BALLS.map(ball=>[ball,profiles[ball].reference?.id?ball+'-'+profiles[ball].reference.id:'']));
 if(!savedGarage){
@@ -36,17 +37,19 @@ for(const ball of BALLS){
 }
 Object.assign(profiles.nectar.globals,pickProperties(profiles.pollen.globals,FIELD_PROPERTIES));
 profiles.nectar.globals.materials=profiles.pollen.globals.materials;
+state=profiles[activeRobot.pitAmmo??rangeAmmo(activeRobot,state.ball)];
 loadSavedConfiguration(state,activeRobot.drafts[state.ball]);
 const disclosureState=read('biobuzz-disclosures',{});
 let p,result,trace,scene,pitView,clock,pitTime=0,pitPlaying=true,pitHold=0,last=performance.now(),activePanel='pits',toastTimer;
 function toast(s){$('#toast').textContent=s;$('#toast').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('visible'),4000);}
 function persist(){
  activeRobot.drafts[state.ball]=captureRobot(state);
- $('#robotDirty').hidden=!BALLS.some(ball=>robotDirty(activeRobot,ball));
+ $('#robotDirty').hidden=!botDirty(activeRobot);
+ renderGarage();
  try{
   localStorage.setItem('biobuzz-garage-v1',JSON.stringify({profiles,robots:garage,activeRobotId:activeRobot.id,traceIds}));
   localStorage.setItem('biobuzz-active-ball',state.ball);
- }catch{toast('Browser storage unavailable. Export your robots and settings to keep them.');}
+ }catch{toast('Browser storage unavailable. Export your bots and settings to keep them.');}
 }
 const specs={camDrop:['Cam Drop',15,85,1,'°'],springStrength:['Spring Strength',100,1500,10,'N/m'],armLength:['Throwing Arm Length',180,450,1,'mm'],releaseAngle:['Release Angle',10,75,.5,'°'],gearRatio:['Rear : front gearing',1,4,.05,': 1'],rearRatio:['Legacy ratio',.5,2.5,.05,'×'],
  throatGap:['Throat gap (at rest)',15,100,.1,'mm'],stripWidth:['Tape strip width',2,20,.5,'mm'],stripSpacing:['Tape strip center spacing',5,50,.5,'mm'],railWidth:['Rail width',1,10,.5,'mm'],railSpacing:['Rail center spacing',5,50,.5,'mm'],height:['Shooter exit height',6,18,.1,'in'],distance:['Distance to HIVE',1,8,.1,'ft'],rpm:['Drive wheel speed',2000,6000,50,'RPM'],outerRpm:['Outer motor RPM',2000,6000,50,'RPM'],angle:['Launch angle',0,90,.5,'°'],wheelDepth:['Rim size',6,140,.1,'mm'],outerWheelDepth:['Rim size',6,140,.1,'mm'],wheelD:['Wheel diameter',1.5,5,.01,'mm'],outerD:['Outer wheel diameter',1.5,5,.01,'mm'],durometer:['Hardness',10,90,1,'Shore A'],outerDurometer:['Hardness',10,90,1,'Shore A'],muWheel:['Wheel-to-ball friction',.05,1.5,.01,'μ'],compression:['Ball compression',0,8,.025,'mm'],outerCompression:['Outer contact compression',0,8,.025,'mm'],outerGap:['Wheel spacing',0,50,.5,'mm'],gap:['Wheel spacing',0,50,.5,'mm'],driveRatio:['Motor-to-wheel speed ratio',.25,3,.05,'×'],ratio:['Outer motor-to-wheel ratio',.25,3,.05,'×'],arc:['Contact arc',5,150,1,'°'],hoodRadius:['Ball-path radius',40,160,1,'mm'],muBack:['Hood / guide friction',.02,1,.01,'μ'],offset:['Outer group longitudinal offset',-60,60,1,'mm'],overlap:['Simultaneous contact overlap',0,1,.05,'×'],rampLength:['Guide contact length',40,240,1,'mm'],rampEnd:['Guide end offset',-20,40,1,'mm'],springPreload:['Spring preload',0,80,1,'N'],springK:['Spring stiffness',500,15000,100,'N/m'],springTravel:['Carriage travel',0,25,.5,'mm'],minAngle:['Minimum launch angle',0,89,.5,'°'],maxAngle:['Maximum launch angle',1,90,.5,'°'],ballD:['Ball diameter',2,4,.01,'mm'],mass:['Ball mass',10,100,1,'g'],inertia:['Rotational inertia factor',.2,1,.001,'κ'],stiffness:['Ball effective stiffness',1000,2000000,1000,'N/m'],ballGrip:['Ball surface grip factor',.1,2,.05,'×'],restitution:['CELL supported-edge bounce',0,1,.01,'e'],wallFriction:['CELL surface friction',0,1.5,.01,'μ'],impactDamping:['Impact damping',0,1,.01,'×'],drag:['Air drag coefficient',0,2,.01,'Cd'],magnus:['Magnus coefficient',0,1,.01,'CL'],airDensity:['Air density',.1,3,.005,'kg/m³'],gravity:['Gravity',1,20,.00001,'m/s²'],spinDecay:['Spin decay',0,3,.01,'1/s'],loadFactor:['Contact load calibration',.1,3,.05,'×'],contactGain:['Contact conductance',1,100,1,'Ns/m']};
@@ -129,41 +132,86 @@ function refreshRobot(){
  renderCard();renderControls();update();renderCompare();
 }
 function switchRobot(id){
- const robot=garage.find(entry=>entry.id===id);
- if(!robot||robot===activeRobot)return;
+ const bot=garage.find(entry=>entry.id===id);
+ if(!bot||bot===activeRobot)return;
  persist();
- activeRobot=robot;
+ activeRobot=bot;
+ const ammo=rangeAmmo(bot,bot.preferredAmmo??state.ball);
+ state=profiles[activePanel==='pits'?(bot.pitAmmo??ammo):ammo];
+ refreshRobot();
+}
+function switchAmmo(ball){
+ if(ball===state.ball)return;
+ persist();
+ state=profiles[ball];
  refreshRobot();
 }
 function renderCard(){
- $$('#ballSelect input').forEach(input=>{input.checked=input.value===state.ball;});
  const design=DESIGNS.find(entry=>entry.id===state.active);
  $('#designName').textContent=design.name;
  $('#designTag').textContent=design.tag;
  $('#designDescription').textContent=design.description;
  $('.turret-card').style.setProperty('--card-accent',design.accent);
- $('#rangeDesign').textContent=activeRobot.draftName||'Untitled robot';
+ $('#rangeDesign').textContent=activeRobot.draftName||'Untitled bot';
  $('#robotName').value=activeRobot.draftName;
+ $$('#pitAmmoTabs input').forEach(input=>{input.checked=input.value===state.ball;});
+ $('#ammoEnabled').checked=activeRobot.enabled[state.ball];
+ $('#ammoEnabledLabel').textContent='Enable '+ballName(state.ball);
+ $('#ammoConfig').hidden=!activeRobot.enabled[state.ball];
+ $('#ammoDesign').value=state.active;
  renderRobotOptions();
 }
 function renderRobotOptions(){
  const select=$('#activeRobot');
- select.innerHTML=garage.map(robot=>`<option value="${esc(robot.id)}">${esc(robot.draftName||'Untitled robot')}</option>`).join('');
+ select.innerHTML=garage.map(bot=>`<option value="${esc(bot.id)}">${esc(bot.draftName||'Untitled bot')}</option>`).join('');
  select.value=activeRobot.id;
+ const ammo=$('#rangeAmmo');
+ ammo.innerHTML=BALLS.map(ball=>`<option value="${ball}" ${activeRobot.enabled[ball]?'':'disabled'}>${ballName(ball)}</option>`).join('');
+ ammo.disabled=availableAmmo(activeRobot).length===1;
+ ammo.value=rangeAmmo(activeRobot,state.ball);
  const compare=$('#traceRobot');
- compare.innerHTML='<option value="">None</option>'+garage.filter(robot=>robot.id!==activeRobot.id&&robot.saved[state.ball]).map(robot=>`<option value="${esc(robot.id)}">${esc(robot.name)}</option>`).join('');
+ compare.innerHTML='<option value="">None</option>'+garage.filter(bot=>bot.id!==activeRobot.id&&savedAmmo(bot,state.ball)).map(bot=>`<option value="${esc(bot.id)}">${esc(bot.name)}</option>`).join('');
  compare.value=[...compare.options].some(option=>option.value===traceIds[state.ball])?traceIds[state.ball]:'';
 }
 $('#activeRobot').onchange=e=>switchRobot(e.target.value);
+$('#rangeAmmo').onchange=e=>{
+ if(!activeRobot.enabled[e.target.value])return;
+ activeRobot.preferredAmmo=e.target.value;
+ switchAmmo(e.target.value);
+};
+$('#pitAmmoTabs').onchange=e=>{
+ activeRobot.pitAmmo=e.target.value;
+ switchAmmo(e.target.value);
+};
+$('#ammoEnabled').onchange=e=>{
+ const enabled=e.target.checked;
+ if(!enabled&&availableAmmo(activeRobot).length===1){
+  e.target.checked=true;
+  toast('Keep at least one ammo type enabled.');
+  return;
+ }
+ activeRobot.enabled[state.ball]=enabled;
+ renderCard();persist();
+};
+const designOptions=DESIGNS.map(design=>`<option value="${design.id}">${esc(design.name)}</option>`).join('');
+$('#ammoDesign').innerHTML=designOptions;
+$('#ammoDesign').onchange=e=>{
+ const design=e.target.value;
+ if(design===state.active)return;
+ const template=labForBall(state.ball);
+ const params=captureRobot({...template,active:design,height:state.height,distance:state.distance});
+ activeRobot.drafts[state.ball]=params;
+ refreshRobot();
+};
 $('#robotName').oninput=e=>{
  activeRobot.draftName=e.target.value;
- $('#rangeDesign').textContent=activeRobot.draftName||'Untitled robot';
+ $('#rangeDesign').textContent=activeRobot.draftName||'Untitled bot';
  renderRobotOptions();persist();if(activePanel==='compare')renderCompare();
 };
 $('#traceRobot').onchange=e=>{traceIds[state.ball]=e.target.value;update();};
-function showPanel(id){if(timer){clearTimeout(timer);timer=null;update();}activePanel=id;$$('.panel').forEach(el=>el.classList.toggle('active',el.id===id));$$('.navtab').forEach(el=>{el.classList.toggle('active',el.dataset.panel===id||el.dataset.panel==='calibration'&&id==='model');el.setAttribute('aria-current',(el.dataset.panel===id||el.dataset.panel==='calibration'&&id==='model')?'page':'false');});if(id==='pits'){pitView?.resize();}if(id==='simulator'){scene?.resize();clock.replay();}if(id==='compare')renderCompare();window.scrollTo({top:0,behavior:'smooth'});}
-$$('.navtab').forEach(b=>b.onclick=()=>showPanel(b.dataset.panel));$('#takeRange').onclick=()=>showPanel('simulator');$('#reset').onclick=$('#editRobot').onclick=()=>showPanel('pits');$('#openModel').onclick=()=>showPanel('model');$('.brand').onclick=e=>{e.preventDefault();showPanel('pits');};
-function update(){p=paramsFor(state);const target=garage.find(robot=>robot.id!==activeRobot.id&&robot.id===traceIds[state.ball]&&robot.saved[state.ball]);trace=target?simulate(withOfficialField({...target.saved[state.ball],...state.globals})):null;$('#traceLegend').hidden=!target;$('#traceLegend').textContent=target?.name??'';result=simulate(p);result.timeline??={samples:[],duration:0,exitTime:0,basketTime:0,events:[]};if(clock)clock.setTimeline(result.timeline);else clock=new ShotClock(result.timeline);clock.loop=$('#loop').checked;clock.override=$('#speed').value==='auto'?null:Number($('#speed').value);$('#timeline').max=result.timeline.duration;if(scene){scene.ghost=Boolean(trace);scene.build(p,result,trace);}pitView?.build(p,result);pitTime=0;pitHold=0;const {L,free,shot}=result;syncGear();renderRobotSummary();updateContactNotes();$('#pitMetrics').innerHTML=`<div><span>EXIT VELOCITY</span><strong>${fmt(L.v,2)} <small>m/s</small></strong></div><div><span>${L.w<0?'FORWARD SPIN':'BACKSPIN'}</span><strong>${fmt(Math.abs(L.w)*30/Math.PI,0)} <small>RPM</small></strong></div><div><span>CONTACT TIME</span><strong>${fmt((L.contactTime??L.t)*1000,1)} <small>ms</small></strong></div><div><span>LOADED PATH</span><strong>${fmt((L.contactDistance??L.length)*1000,1)} <small>mm</small></strong></div>`;if(L.catapult)$('#pitMetrics').innerHTML=`<div><span>STORED SPRING ENERGY</span><strong>${fmt(L.storedEnergy,2)} <small>J</small></strong></div><div><span>EXIT VELOCITY</span><strong>${fmt(L.v,2)} <small>m/s</small></strong></div><div><span>ESTIMATED BALL SPIN</span><strong>${fmt(L.w*30/Math.PI,0)} <small>RPM</small></strong></div><div><span>RELEASE ANGLE</span><strong>${fmt(p.angle,1)} <small>°</small></strong></div>`;
+function showPanel(id){if(timer){clearTimeout(timer);timer=null;update();}activePanel=id;if(id==='simulator'||id==='compare'){switchAmmo(rangeAmmo(activeRobot,activeRobot.preferredAmmo??state.ball));}else if(id==='pits'&&activeRobot.pitAmmo){switchAmmo(activeRobot.pitAmmo);}$$('.panel').forEach(el=>el.classList.toggle('active',el.id===id));$$('.navtab').forEach(el=>{el.classList.toggle('active',el.dataset.panel===id||el.dataset.panel==='calibration'&&id==='model');el.setAttribute('aria-current',(el.dataset.panel===id||el.dataset.panel==='calibration'&&id==='model')?'page':'false');});if(id==='pits'){pitView?.resize();}if(id==='simulator'){scene?.resize();clock.replay();}if(id==='compare')renderCompare();window.scrollTo({top:0,behavior:'smooth'});}
+$$('.navtab').forEach(b=>b.onclick=()=>showPanel(b.dataset.panel));$('#takeRange').onclick=()=>showPanel('simulator');$('#editRobot').onclick=()=>showPanel('pits');$('#openModel').onclick=()=>showPanel('model');$('.brand').onclick=e=>{e.preventDefault();showPanel('pits');};
+function update(){p=paramsFor(state);const target=garage.find(robot=>robot.id!==activeRobot.id&&robot.id===traceIds[state.ball]&&savedAmmo(robot,state.ball));trace=target?simulate(withOfficialField({...target.saved[state.ball],...state.globals})):null;$('#traceLegend').hidden=!target;$('#traceLegend').textContent=target?.name??'';result=simulate(p);result.timeline??={samples:[],duration:0,exitTime:0,basketTime:0,events:[]};if(clock)clock.setTimeline(result.timeline);else clock=new ShotClock(result.timeline);clock.loop=$('#loop').checked;clock.override=$('#speed').value==='auto'?null:Number($('#speed').value);$('#timeline').max=result.timeline.duration;if(scene){scene.ghost=Boolean(trace);scene.build(p,result,trace);}pitView?.build(p,result);pitTime=0;pitHold=0;const {L,free,shot}=result;syncGear();renderRobotSummary();updateContactNotes();$('#pitMetrics').innerHTML=`<div><span>EXIT VELOCITY</span><strong>${fmt(L.v,2)} <small>m/s</small></strong></div><div><span>${L.w<0?'FORWARD SPIN':'BACKSPIN'}</span><strong>${fmt(Math.abs(L.w)*30/Math.PI,0)} <small>RPM</small></strong></div><div><span>CONTACT TIME</span><strong>${fmt((L.contactTime??L.t)*1000,1)} <small>ms</small></strong></div><div><span>LOADED PATH</span><strong>${fmt((L.contactDistance??L.length)*1000,1)} <small>mm</small></strong></div>`;if(L.catapult)$('#pitMetrics').innerHTML=`<div><span>STORED SPRING ENERGY</span><strong>${fmt(L.storedEnergy,2)} <small>J</small></strong></div><div><span>EXIT VELOCITY</span><strong>${fmt(L.v,2)} <small>m/s</small></strong></div><div><span>ESTIMATED BALL SPIN</span><strong>${fmt(L.w*30/Math.PI,0)} <small>RPM</small></strong></div><div><span>RELEASE ANGLE</span><strong>${fmt(p.angle,1)} <small>°</small></strong></div>`;
  $('#exitSpeed').innerHTML=fmt(L.v/.3048,1)+'<em>ft/s</em>';$('#exitMetric').textContent=L.catapult?fmt(L.v,2)+' m/s · '+fmt(L.storedEnergy,2)+' J stored spring energy':fmt(L.v,2)+' m/s · wheel surface '+fmt(L.U,1)+' m/s';$('#spinLabel').textContent=L.w<0?'FORWARD SPIN':'BACKSPIN';$('#spinRpm').innerHTML=fmt(Math.abs(L.w)*30/Math.PI,0)+'<em>RPM</em>';$('#spinRatio').textContent='Signed spin ratio ωr/v = '+fmt(L.w*L.geo.r/Math.max(.01,L.v),2);$('#apex').innerHTML=fmt(free.max,2)+'<em>m</em>';$('#clearance').innerHTML=shot.minClear==null?'—':fmt(shot.minClear*1000,0)+'<em>mm</em>';$('#clearanceNote').textContent=shot.minClear==null?'No entrance crossing':'Full-sphere entrance clearance';$('#shotStatus').textContent=shot.status==='Settled in CELL'?'Predicted retained score':shot.status==='Escaped CELL'?'Bounce-out / spin-out':shot.status;$('#statusDescription').textContent=!L.valid?(L.reason||'Invalid contact geometry'):shot.leftField?(shot.exited?'The ball escaped the CELL':'The ball missed the CELL')+(shot.firstFloorTime!==null?', bounced on the tile, and cleared the projected perimeter.':' and cleared the projected perimeter before touching the tile.'):shot.exited?'The ball entered, then escaped the CELL. Follow the spin marker through its next impact.':shot.ended==='settled in CELL'?'The modeled ball comes to rest inside the CELL. A predicted retained score is still an uncalibrated estimate.':'Entry alone does not establish a retained score. Inspect the trajectory and complete collision sequence.';$('#spinExplanation').textContent=state.active==='differential'?'The rear pair is powered and the front wheel is geared down. A faster rear surface produces forward torque; the shared contact time and grip determine the spin that develops. '+differentialTractionNote(L)+'':state.active==='catapult'?'The spring pushes the arm up. Cam rotation presses it down until the follower reaches the cliff. Spring force, arm inertia, gravity and cup friction determine the release speed and spin.':state.active==='underhand'?'The wheel above and inside the bend drives the ball upward and forward along the lower guide. Its contact torque generates forward spin; guide friction can add or brake that spin.':state.active==='spring'?'The powered wheels above the ball drive it against the stationary guide. Their torque opposes that of our original inner-wheel design. Guide friction, spring travel, and wheel slip determine the resulting spin.':'Powered-wheel traction and hood friction each change translation and rotation. Backer friction can change sign as relative slip changes; lower friction is not a fixed spin multiplier.';if(state.active!=='differential')$('#spinExplanation').textContent+=' '+guideSpinNote(L)+' A frictionless guide does not cancel the powered wheel’s torque.';$('#rangeText').textContent=`Free-flight range ${fmt(free.range,2)} m · contact ${fmt((L.contactTime??L.t)*1000,1)} ms`;$('#crossingText').textContent=shot.entry?`At entrance ${fmt(shot.entry.y,2)} m · ${fmt(shot.entry.t,2)} s`:'No entrance crossing';$('#sceneScale').textContent=`Distance ${fmt(p.distance/.3048,1)} ft · exit ${fmt(p.height/.0254,1)} in · fixed FIRST HIVE`;$('#modelStatus').textContent=state.history.some(x=>x.type==='fit')?'Exploratory fit · unvalidated':'Uncalibrated model';if(!L.valid){$('#exitSpeed').textContent='—';$('#spinRpm').textContent='—';$('#pitMetrics').innerHTML='<p>'+esc(L.reason||'Invalid contact geometry')+'</p>'; }drawChart();persist();if(activePanel==='compare')renderCompare();}
 function drawChart(){const svg=$('#trajectory'),W=800,H=270,pad={l:57,r:24,t:24,b:44},plotW=W-pad.l-pad.r,plotH=H-pad.t-pad.b;const current=result.free.pts;const xmax=Math.max(p.distance+.6,Math.min(6,result.free.range+.1),Math.min(6,(trace?.free.range??0)+.1),2),ymax=Math.max(p.targetHeight+.4,result.free.max+.25,(trace?.free.max??0)+.25,1.7);const x=x=>pad.l+x/xmax*plotW,y=v=>H-pad.b-v/ymax*plotH;let html='';for(let i=0;i<=4;i++){const yy=ymax*i/4;html+=`<line x1="${pad.l}" y1="${y(yy)}" x2="${W-pad.r}" y2="${y(yy)}" stroke="#2a3b40" stroke-dasharray="3 5"/><text x="${pad.l-12}" y="${y(yy)+4}" text-anchor="end">${fmt(yy,1)}</text>`;}for(let i=0;i<=6;i++){const xx=xmax*i/6;html+=`<line x1="${x(xx)}" y1="${pad.t}" x2="${x(xx)}" y2="${H-pad.b}" stroke="#24363b"/><text x="${x(xx)}" y="${H-pad.b+20}" text-anchor="middle">${fmt(xx,1)}</text>`;}
 const b=p.targetTilt*Math.PI/180,cx=p.distance,cy=p.targetHeight,ht=p.targetTall*IN/2,dep=p.targetDepth*IN,ex=Math.sin(b),ey=Math.cos(b),ax=Math.cos(b),ay=-Math.sin(b);let corners=[[-ht,0],[-ht,dep],[ht,dep],[ht,0]].map(([u,q])=>[cx+u*ex+q*ax,cy+u*ey+q*ay]);html+=`<polygon points="${corners.map(c=>x(c[0])+','+y(c[1])).join(' ')}" fill="#6f9bbb18" stroke="#6c899a" stroke-width="1.5"/><line x1="${x(corners[0][0])}" y1="${y(corners[0][1])}" x2="${x(corners[3][0])}" y2="${y(corners[3][1])}" stroke="#b3d4d7" stroke-width="3"/><text x="${x(cx)}" y="${y(cy)-38}" text-anchor="middle" style="fill:#aac3ca;font-size:10px">CELL ≈</text>`;
@@ -177,9 +225,9 @@ const ballName=ball=>ball==='nectar'?'Nectar':'Pollen';
 function showTransfer(mode,items){
  transferMode=mode;
  transferItems=items;
- if(!items.length){toast('No robots or settings in this file.');return;}
+ if(!items.length){toast('No bots or settings in this file.');return;}
  const verb=mode==='import'?'Import':'Export';
- $('#transferTitle').textContent=verb+' robots and settings';
+ $('#transferTitle').textContent=verb+' bots and settings';
  $('#applyTransfer').textContent=verb+' selected';
  $('#transferItems').innerHTML=items.map((item,index)=>`<label class="toggle-line"><input type="checkbox" value="${index}" ${item.checked===false?'':'checked'}> <span>${esc(item.label)}</span></label>`).join('');
  $('#applyTransfer').disabled=false;
@@ -188,8 +236,8 @@ function showTransfer(mode,items){
 }
 function exportChecklist(){
  const robots=garage.filter(robot=>BALLS.some(ball=>robot.saved[ball])).map(robot=>({
-  label:'Robot · '+robot.name,
-  setups:BALLS.filter(ball=>robot.saved[ball]).map(ball=>({name:robot.name,robotId:robot.id,params:{...robot.saved[ball],ball}}))
+  label:'Bot · '+robot.name,
+  setups:BALLS.filter(ball=>robot.saved[ball]).map(ball=>({name:robot.name,robotId:robot.id,enabled:robot.savedEnabled[ball],params:{...robot.saved[ball],ball}}))
  }));
  const models=[
   {name:'Shared physics',scope:'field',globals:pickProperties(state.globals,FIELD_PROPERTIES)},
@@ -198,10 +246,8 @@ function exportChecklist(){
  ];
  showTransfer('export',[...robots,...models.map(model=>({label:model.name,models:[model],checked:!!model.scope}))]);
 }
-$('#openSharing').onclick=()=>$('#shareDialog').showModal();
-$('#closeSharing').onclick=()=>$('#shareDialog').close();
-$('#shareImport').onclick=()=>{$('#shareDialog').close();$('#importFile').click();};
-$('#shareExport').onclick=()=>{$('#shareDialog').close();exportChecklist();};
+$('#pitImport').onclick=()=>$('#importFile').click();
+$('#pitExport').onclick=exportChecklist;
 $('#importTop').onclick=()=>$('#importFile').click();
 $('#exportTop').onclick=exportChecklist;
 $('#importFile').onchange=async e=>{
@@ -215,8 +261,8 @@ $('#importFile').onchange=async e=>{
   const selectedSections=new Set();
   for(const {kind,value} of readShare(await file.text(),file.name.toLowerCase().endsWith('.csv'))){
    if(kind==='setup'){
-    const key=value.robotId?`${value.robotId}:${value.params.design}`:Symbol();
-    if(!groups.has(key))groups.set(key,{label:'Robot · '+value.name,setups:[]});
+    const key=value.robotId??Symbol();
+    if(!groups.has(key))groups.set(key,{label:'Bot · '+value.name,setups:[]});
     groups.get(key).setups.push(value);
    }else{
     const sections=value.scope==='field'?['field']:value.scope==='ball'?['ball']:['field','ball'];
@@ -249,10 +295,15 @@ $('#transferForm').onsubmit=e=>{
   for(const item of selected.filter(entry=>entry.setups)){
    const first=item.setups[0];
    const robot=robotFromSetup(first,first.params.ball,crypto.randomUUID());
+   const flags={pollen:false,nectar:false};
    for(const setup of item.setups){
+    flags[setup.params.ball]=setup.enabled??true;
     robot.drafts[setup.params.ball]=clone(setup.params);
     robot.saved[setup.params.ball]=clone(setup.params);
    }
+   if(!BALLS.some(ball=>flags[ball]))flags[first.params.ball]=true;
+   robot.enabled={...flags};
+   robot.savedEnabled={...flags};
    garage.push(robot);
   }
   for(const model of models){
@@ -264,50 +315,54 @@ $('#transferForm').onsubmit=e=>{
  }
  $('#transferDialog').close();
 };
-$('#ballSelect').onchange=e=>{
- persist();
- state=profiles[e.target.value];
- refreshRobot();
-};
 function summary(q){const r=simulate(withOfficialField({...q,...state.globals}));return [DESIGNS.find(x=>x.id===q.design)?.name??'Curved Hood',q.design==='catapult'?'—':fmt(q.rpm,0),fmt(q.angle,1)+'°',fmt(q.distance/.3048,1)+' ft',fmt(q.height/.0254,1)+' in',q.design==='catapult'?'—':fmt(q.wheelD*25.4,1)+' mm',fmt(r.L.v,2)+' m/s',fmt(r.L.w*30/Math.PI,0)+' RPM',fmt(r.free.max,2)+' m',fmt(q.throatGap??(q.ballD*25.4-q.compression),1)+' mm',r.shot.minClear==null?'—':fmt(r.shot.minClear*1000,0)+' mm',r.shot.status];}
-function renderGarage(){
- $('#garageList').innerHTML=garage.map(robot=>`<div class="history-row">
-  <span>${esc(robot.draftName||'Untitled robot')}<small>${esc(DESIGNS.find(entry=>entry.id===robot.design).name)}${BALLS.some(ball=>robotDirty(robot,ball))?' · Unsaved changes':''}</small></span>
-  <div class="inline-actions"><button class="button" data-open-robot="${esc(robot.id)}">${robot===activeRobot?'Current':'Open'}</button><button class="button" data-delete-robot="${esc(robot.id)}">Delete</button></div>
- </div>`).join('');
+function botListLabel(bot){
+ const dirty=botDirty(bot);
+ return `<span>${esc(bot.draftName||'Untitled bot')}${dirty?' <span class="bot-dirty" aria-label="Unsaved changes">*</span>':''}</span>`;
 }
-$('#openGarage').onclick=()=>{renderGarage();$('#garageDialog').showModal();};
+function renderGarage(){
+ const list=$('#garageList');
+ const focused=list.contains(document.activeElement)?document.activeElement.dataset.pickBot:null;
+ list.innerHTML=garage.map(bot=>`<button type="button" class="bot-list-row" data-pick-bot="${esc(bot.id)}" aria-pressed="${bot===activeRobot}">${botListLabel(bot)}</button>`).join('');
+ if(focused)[...list.querySelectorAll('[data-pick-bot]')].find(button=>button.dataset.pickBot===focused)?.focus();
+ $('#saveConfig').disabled=!botDirty(activeRobot);
+}
+$('#addBot').onclick=()=>$('#garageDialog').showModal();
 $('#closeGarage').onclick=()=>$('#garageDialog').close();
-$('#newRobotDesign').innerHTML=DESIGNS.map(design=>`<option value="${design.id}">${esc(design.name)}</option>`).join('');
+$('#newRobotDesign').innerHTML=designOptions;
 $('#newRobotForm').onsubmit=e=>{
  e.preventDefault();
  const name=$('#newRobotName').value.trim();
  if(!name)return;
  const labs=Object.fromEntries(BALLS.map(ball=>[ball,labForBall(ball)]));
- const robot=makeRobot(crypto.randomUUID(),name,$('#newRobotDesign').value,labs);
- garage.push(robot);
- switchRobot(robot.id);
+ const bot=makeRobot(crypto.randomUUID(),name,$('#newRobotDesign').value,labs);
+ initializeAmmo(bot);
+ garage.push(bot);
+ switchRobot(bot.id);
  e.target.reset();
  $('#garageDialog').close();
 };
 $('#garageList').onclick=e=>{
- const {openRobot,deleteRobot}=e.target.dataset;
- if(openRobot){switchRobot(openRobot);$('#garageDialog').close();return;}
- const index=garage.findIndex(robot=>robot.id===deleteRobot);
- if(index<0)return;
- const robot=garage[index];
- if(!window.confirm('Delete '+(robot.draftName||'this robot')+' from the garage?'))return;
- garage.splice(index,1);
+ const id=e.target.closest('[data-pick-bot]')?.dataset.pickBot;
+ if(id)switchRobot(id);
+};
+$('#deleteBot').onclick=()=>{
+ const bot=activeRobot;
+ if(!window.confirm('Delete '+(bot.draftName||'this bot')+' from the garage?'))return;
+ garage.splice(garage.indexOf(bot),1);
  for(const ball of BALLS){
-  profiles[ball].comparisonIds=profiles[ball].comparisonIds.filter(id=>id!==robot.id);
-  if(traceIds[ball]===robot.id)traceIds[ball]='';
+  profiles[ball].comparisonIds=profiles[ball].comparisonIds.filter(id=>id!==bot.id);
+  if(traceIds[ball]===bot.id)traceIds[ball]='';
  }
  if(!garage.length){
   const labs=Object.fromEntries(BALLS.map(ball=>[ball,labForBall(ball)]));
-  garage.push(makeRobot(crypto.randomUUID(),'Untitled robot','original',labs));
+  const blank=makeRobot(crypto.randomUUID(),'Untitled bot','original',labs);
+  initializeAmmo(blank);
+  garage.push(blank);
  }
- if(robot===activeRobot)activeRobot=garage[0];
- refreshRobot();renderGarage();
+ activeRobot=garage[0];
+ state=profiles[activeRobot.pitAmmo??rangeAmmo(activeRobot,state.ball)];
+ refreshRobot();
 };
 $('#saveConfig').onclick=()=>{
  const name=activeRobot.draftName.trim();
@@ -315,32 +370,31 @@ $('#saveConfig').onclick=()=>{
  activeRobot.name=activeRobot.draftName=name;
  activeRobot.drafts[state.ball]=captureRobot(state);
  activeRobot.saved=clone(activeRobot.drafts);
+ activeRobot.savedEnabled={...activeRobot.enabled};
  persist();renderCard();renderCompare();
  toast(name+' saved.');
 };
 function renderCompare(){
- const options=garage.filter(robot=>robot.saved[state.ball]);
+ const options=garage.filter(bot=>savedAmmo(bot,state.ball));
  const selected=options.filter(robot=>state.comparisonIds.includes(robot.id));
- const cols=[{name:(activeRobot.draftName||'Untitled robot')+' · Current',params:p},...selected.map(robot=>({name:robot.name,params:robot.saved[state.ball]}))];
+ const cols=[{name:(activeRobot.draftName||'Untitled bot')+' · Current',params:p},...selected.map(robot=>({name:robot.name,params:robot.saved[state.ball]}))];
  const labels=['Turret','Drive wheel RPM','Launch angle','Distance to HIVE','Exit height','Wheel diameter','Exit velocity','Signed spin','Apex','Throat gap (rest)','Opening clearance','Predicted result'];
  const values=cols.map(col=>summary(col.params));
  $('#comparisonTable').innerHTML='<thead><tr><th>Result</th>'+cols.map(col=>'<th>'+esc(col.name)+'</th>').join('')+'</tr></thead><tbody>'+labels.map((label,index)=>'<tr><td>'+esc(label)+'</td>'+values.map(row=>'<td>'+esc(row[index])+'</td>').join('')+'</tr>').join('')+'</tbody>';
  $('#compareCount').textContent=cols.length;
- $('#comparisonSelectionNote').textContent=`${selected.length} of ${MAX_COMPARISONS} saved robots selected.`;
- $('#savedSetups').innerHTML=options.map(robot=>{
-  const checked=state.comparisonIds.includes(robot.id);
-  return `<article class="setup-row"><label class="setup-compare"><input type="checkbox" data-compare-robot="${esc(robot.id)}" ${checked?'checked':''} ${!checked&&selected.length>=MAX_COMPARISONS?'disabled':''}><span>${esc(robot.name)}</span></label><button class="button" data-edit-robot="${esc(robot.id)}">Edit</button></article>`;
- }).join('')||'<p class="muted">Save a robot in The Pits to compare it here.</p>';
+ $('#comparisonSelectionNote').textContent=`${selected.length} of ${MAX_COMPARISONS} saved bots selected for ${ballName(state.ball)}.`;
+ $('#savedSetups').innerHTML=garage.map(bot=>{
+  const compatible=Boolean(savedAmmo(bot,state.ball));
+  const checked=compatible&&state.comparisonIds.includes(bot.id);
+  const disabled=!compatible||(!checked&&selected.length>=MAX_COMPARISONS);
+  return `<label class="bot-list-row ${bot===activeRobot?'current':''}"><input type="checkbox" data-compare-robot="${esc(bot.id)}" ${checked?'checked':''} ${disabled?'disabled':''}>${botListLabel(bot)}${compatible?'':`<small>No saved ${ballName(state.ball)} setup</small>`}</label>`;
+ }).join('');
 }
 $('#savedSetups').onchange=e=>{
  const id=e.target.dataset.compareRobot;
  if(!id)return;
  state.comparisonIds=e.target.checked?[...state.comparisonIds,id]:state.comparisonIds.filter(entry=>entry!==id);
  persist();renderCompare();
-};
-$('#savedSetups').onclick=e=>{
- const id=e.target.dataset.editRobot;
- if(id){switchRobot(id);showPanel('pits');}
 };
 function applySharedPhysics(globals){
  const shared=pickProperties(globals,FIELD_PROPERTIES);

@@ -183,3 +183,66 @@
   .active-robot select { max-width: 9rem; }
   .robot-name-field { width: 100%; }
 }
+
+.garage-layout {
+  display: grid;
+  grid-template-columns: minmax(155px, 215px) minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+}
+.bot-sidebar {
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+.bot-sidebar summary { padding: 7px; cursor: pointer; font-weight: 600; }
+.bot-list { display: grid; gap: 4px; margin: .45rem 0; }
+#garageList.bot-list { margin: .45rem 0; max-height: 55vh; }
+.bot-list-row {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  min-width: 0;
+  padding: .5rem .6rem;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.bot-list-row[aria-pressed="true"], .bot-list-row.current {
+  background: #29352b;
+  border-color: #52684d;
+}
+.bot-list-row:hover { border-color: #66777a; }
+.bot-list-row input { accent-color: var(--lime); }
+.bot-list-row small { color: var(--muted); font-size: .72rem; }
+.bot-dirty { color: #ffdd72; }
+.bot-sidebar-actions, .range-pickers { display: flex; flex-wrap: wrap; gap: 6px; }
+.bot-sidebar-actions { margin-top: 7px; }
+.bot-sidebar-actions .button { padding: 6px 9px; font-size: 13px; }
+.range-pickers { align-items: flex-end; gap: 10px; }
+.range-pickers label, .ammo-design { display: grid; gap: 4px; font-size: 13px; }
+.range-pickers select, .ammo-design select {
+  max-width: 14rem;
+  min-width: 0;
+  padding: .45rem;
+  border: 1px solid #536166;
+  border-radius: 6px;
+  background: #20292d;
+  color: var(--text);
+}
+.ammo-design select { max-width: 100%; }
+.pit-controls > h3 { margin: 0 0 .65rem; }
+.pit-controls .ball-toggle { width: fit-content; }
+.ammo-enabled { margin: .8rem 0; }
+#ammoConfig[hidden] { display: none; }
+@media (max-width: 900px) {
+  .garage-layout { grid-template-columns: minmax(0, 1fr); }
+  #garageList.bot-list { max-height: 12rem; }
+}
+@media (min-width: 901px) {
+  .garage-layout > .bot-sidebar { position: sticky; top: 78px; }
+}

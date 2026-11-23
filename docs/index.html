@@ -1,53 +1,75 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#111719"><title>BIOBUZZ Launch Lab · FTC 17097</title><meta name="description" content="A mechanical and physics exploration lab for FTC Team 17097. Tune turrets, study ball flight, and compare trajectories."><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><path fill=%22%23d5ed65%22 d=%22M32 2 59 17v30L32 62 5 47V17z%22/></svg>"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="pits.css"><script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script></head>
 <body>
-<header class="topbar"><a class="brand" href="#" aria-label="BIOBUZZ Launch Lab home"><svg width="38" height="42" viewBox="0 0 38 42" aria-hidden="true"><path d="M19 2 36 12v19L19 41 2 31V12Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="m11 15 8-5 8 5v10l-8 5-8-5Z" fill="currentColor"/><path d="M19 15v10M15 18l8 4m0-4-8 4" stroke="#151b1d" stroke-width="2"/></svg><span>BIOBUZZ <b>LAUNCH LAB</b></span></a><div class="team-tag">FTC <strong>17097</strong><span>2026–27 SEASON</span></div><nav class="mainnav" aria-label="Lab workspaces"><button class="navtab active" data-panel="pits">The Pits</button><button class="navtab" data-panel="simulator">The Range</button><button class="navtab" data-panel="compare">Compare <span id="compareCount">0</span></button><span class="model-status" id="modelStatus">Uncalibrated model</span></nav><div class="header-actions"><label class="active-robot">Robot <select id="activeRobot" aria-label="Active robot"></select></label>
-  <div id="ballSelect" class="ball-toggle" role="group" aria-label="Ball type">
-    <label><input type="radio" name="activeBall" value="pollen" checked><span>Pollen</span></label>
-    <label><input type="radio" name="activeBall" value="nectar"><span>Nectar</span></label>
-  </div>
-  <button class="navtab settings-toggle" data-panel="calibration" type="button" aria-label="Settings" title="Settings">
+<header class="topbar"><a class="brand" href="#" aria-label="BIOBUZZ Launch Lab home"><svg width="38" height="42" viewBox="0 0 38 42" aria-hidden="true"><path d="M19 2 36 12v19L19 41 2 31V12Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="m11 15 8-5 8 5v10l-8 5-8-5Z" fill="currentColor"/><path d="M19 15v10M15 18l8 4m0-4-8 4" stroke="#151b1d" stroke-width="2"/></svg><span>BIOBUZZ <b>LAUNCH LAB</b></span></a><div class="team-tag">FTC <strong>17097</strong><span>2026–27 SEASON</span></div><nav class="mainnav" aria-label="Lab workspaces"><button class="navtab active" data-panel="pits">The Pits</button><button class="navtab" data-panel="simulator">The Range</button><button class="navtab" data-panel="compare">Compare <span id="compareCount">0</span></button><span class="model-status" id="modelStatus">Uncalibrated model</span></nav><div class="header-actions"><button class="navtab settings-toggle" data-panel="calibration" type="button" aria-label="Settings" title="Settings">
     <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2h4l.6 2.4 1.4.8 2.4-.7 2 3.5-1.8 1.7v1.6l1.8 1.7-2 3.5-2.4-.7-1.4.8L14 19h-4l-.6-2.4-1.4-.8-2.4.7-2-3.5 1.8-1.7V9.7L3.6 8l2-3.5 2.4.7 1.4-.8z" transform="translate(0 1.5)"/><circle cx="12" cy="12" r="2.7"/></svg><span>Settings</span>
   </button>
 </div></header>
 
 <main>
 <section id="pits" class="panel active">
-<div class="pit-heading"><div><span class="eyebrow">THE PITS / FTC 17097</span><h1>Build the shot.</h1><p>Explore the mechanism. Configure your robot. Take it to the field.</p></div></div>
+<div class="pit-heading"><div><span class="eyebrow">THE PITS / FTC 17097</span><h1>Build the shot.</h1><p>Configure a bot and take it to the field.</p></div></div>
+<div class="garage-layout">
+ <details class="bot-sidebar" open>
+  <summary>Bots</summary>
+  <div id="garageList" class="bot-list" aria-label="Pick a bot"></div>
+  <div class="bot-sidebar-actions">
+   <button id="addBot" type="button" class="button">New bot</button>
+   <button id="deleteBot" type="button" class="button">Delete</button>
+  </div>
+  <div class="bot-sidebar-actions">
+   <button id="pitImport" type="button" class="button">Import</button>
+   <button id="pitExport" type="button" class="button">Export</button>
+  </div>
+ </details>
 <article class="turret-card"><div class="turret-card-head"><div><span id="designTag" class="eyebrow"></span><h2 id="designName"></h2><p id="designDescription"></p></div><div class="card-edition"><small>MECHANICAL STUDY</small></div></div>
 <div class="pit-setup-toolbar"><div class="robot-name-field">
-  <label for="robotName">Robot name</label>
+  <label for="robotName">Bot name</label>
   <input id="robotName" type="text" maxlength="60" autocomplete="off">
   <span id="robotDirty" aria-label="Unsaved changes" hidden>*</span>
-</div><div class="pit-config-actions" role="group" aria-label="Robot actions">
-  <button type="button" id="openGarage" class="button" aria-label="Open robot garage" title="Open robot garage">
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17V6a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v1M3 17l3-7h15a1 1 0 0 1 .9 1.4L19 18a2 2 0 0 1-1.8 1H5a2 2 0 0 1-2-2Z"/></svg>
-  </button>
-  <button type="button" id="openSharing" class="button" aria-label="Share robots and settings" title="Share robots and settings">
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="m8 11 8-5m-8 7 8 5"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="5" r="3"/><circle cx="18" cy="19" r="3"/></svg>
-  </button>
-  <button type="button" id="saveConfig" class="button" aria-label="Save robot" title="Save robot">
+</div><div class="pit-config-actions" role="group" aria-label="Bot actions">
+  <button type="button" id="saveConfig" class="button" aria-label="Save bot" title="Save bot">
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 3h13l4 4v13a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M7 3v6h9V3M7 21v-8h10v8"/></svg>
   </button>
   <button type="button" id="takeRange" class="launch-button">Take to Range</button>
 </div></div>
-<div class="pit-grid"><div class="pit-visuals"><div class="mechanical-view"><div class="view-caption"><span>CONTACT STUDY / 2D CUTAWAY</span><div><button id="pitPlay" class="button">Pause</button><button id="pitReplay" class="button">Replay</button><span class="speed-badge" id="pitSpeed">0.80×</span></div></div><div id="pitCutaway" aria-label="Slow motion mechanical cutaway"></div></div><div id="pitMetrics" class="pit-metrics"></div><p class="control-note">Launch angle is measured above horizontal. The ball feeds vertically through the turret center; the mechanism turns it toward the release direction.</p></div><aside class="pit-controls"><div class="control-title"><div><span class="eyebrow">ROBOT CONFIGURATION</span><h3>Make it your own.</h3></div><span id="pitSaved" class="tiny-pill">AUTO-SAVED</span></div><div id="sharedRobotHeight" aria-label="Shared robot exit height"></div><div id="pitControls"></div><p class="control-note">Changes stay with this robot and ball. Save the robot to update its comparison and sharing snapshot.</p></aside></div></article></section>
+<div class="pit-grid"><div class="pit-visuals"><div class="mechanical-view"><div class="view-caption"><span>CONTACT STUDY / 2D CUTAWAY</span><div><button id="pitPlay" class="button">Pause</button><button id="pitReplay" class="button">Replay</button><span class="speed-badge" id="pitSpeed">0.80×</span></div></div><div id="pitCutaway" aria-label="Slow motion mechanical cutaway"></div></div><div id="pitMetrics" class="pit-metrics"></div><p class="control-note">Launch angle is measured above horizontal. The ball feeds vertically through the turret center; the mechanism turns it toward the release direction.</p></div><aside class="pit-controls"><h3>Bot settings</h3>
+ <div id="pitAmmoTabs" class="ball-toggle" role="group" aria-label="Ammo settings">
+  <label><input type="radio" name="pitAmmo" value="pollen" checked><span>Pollen</span></label>
+  <label><input type="radio" name="pitAmmo" value="nectar"><span>Nectar</span></label>
+ </div>
+ <label class="toggle-line ammo-enabled"><input id="ammoEnabled" type="checkbox"><span id="ammoEnabledLabel">Enable Pollen</span></label>
+ <div id="ammoConfig">
+  <label class="ammo-design">Launcher type <select id="ammoDesign"></select></label>
+  <div id="sharedRobotHeight"></div>
+  <div id="pitControls"></div>
+ </div>
+</aside></div></article></div></section>
 <section id="simulator" class="panel">
-<div class="pagehead"><div><div class="eyebrow">THE RANGE <span>/</span> <span id="rangeDesign">ORIGINAL CURVED HOOD</span></div><h1>Test your turret</h1><p>One shot. From wheel contact to the tilted HIVE.</p></div><button class="text-button" id="reset">Back to The Pits</button></div>
+<div class="pagehead"><div><div class="eyebrow">THE RANGE <span>/</span> <span id="rangeDesign">ORIGINAL CURVED HOOD</span></div><h1>Test your turret</h1><p>One shot. From wheel contact to the tilted HIVE.</p></div><div class="range-pickers">
+ <label>Bot <select id="activeRobot" aria-label="Bot at the Range"></select></label>
+ <label>Ammo <select id="rangeAmmo" aria-label="Ammo at the Range"></select></label>
+</div></div>
 <div class="workspace"><div class="visual-column"><div class="viewport-card">
 <div class="viewport-toolbar cinematic-toolbar"><div class="shot-stages" aria-label="Shot phases"><span data-stage="contact" class="active">Contact</span><i></i><span data-stage="flight">Flight</span><i></i><span data-stage="basket">Basket</span></div><span class="speed-badge" id="speedReadout" aria-label="Current playback speed">0.05×</span></div>
 <div id="viewport" aria-label="Continuous 2D shot playback"><div class="scene-title"><span id="viewTitle">TURRET CONTACT</span><small id="sceneScale">One timeline · physical seconds · SI world coordinates</small></div><div class="live-state"><span id="liveVelocity">0.3 m/s</span><span id="liveSpin">0 RPM</span></div><div id="interactionNote" class="interaction-note">Wheel contact · uncalibrated model</div><div id="renderError" hidden>Animation is unavailable. Physics controls and results remain available.</div></div>
-<div class="view-options"><label><input id="autoCamera" type="checkbox" checked> Auto Camera</label><label class="compare-dropdown">Compare to <select id="traceRobot" aria-label="Compare to robot"></select></label><label><input id="loop" type="checkbox" checked> Auto replay</label><button id="zoomOut" class="button" aria-label="Zoom out">−</button><button id="zoomIn" class="button" aria-label="Zoom in">+</button><button id="fitShot" class="contact-study">Fit whole shot</button></div>
+<div class="view-options"><label><input id="autoCamera" type="checkbox" checked> Auto Camera</label><label class="compare-dropdown">Compare to <select id="traceRobot" aria-label="Compare to bot"></select></label><label><input id="loop" type="checkbox" checked> Auto replay</label><button id="zoomOut" class="button" aria-label="Zoom out">−</button><button id="zoomIn" class="button" aria-label="Zoom in">+</button><button id="fitShot" class="contact-study">Fit whole shot</button></div>
 <div class="transport cinematic-transport"><button id="play" class="launch-button">Pause</button><button id="replay" class="icon-button" aria-label="Replay complete shot" title="Replay complete shot">↺</button><button id="stepBack" class="frame-button" aria-label="Previous physics frame" title="Step back 1 ms of simulation time">Step −</button><button id="stepForward" class="frame-button" aria-label="Next physics frame" title="Step forward 1 ms of simulation time">Step +</button><input id="timeline" class="play-progress" type="range" min="0" max="2" step=".00001" value="0" aria-label="Complete shot timeline"><span id="timecode" class="mono">0 ms</span><select id="speed" aria-label="Playback speed override"><option value="auto" selected>Auto speed</option><option value=".01">0.01×</option><option value=".05">0.05×</option><option value=".1">0.1×</option><option value=".25">0.25×</option><option value=".5">0.5×</option><option value="1">1×</option></select></div>
 </div>
 <div class="metric-grid"><article class="metric"><div>EXIT VELOCITY <span class="metric-icon">↗</span></div><strong id="exitSpeed">–</strong><small id="exitMetric">–</small></article><article class="metric"><div><span id="spinLabel">BACKSPIN</span> <span class="metric-icon">⟳</span></div><strong id="spinRpm">–</strong><small id="spinRatio">–</small></article><article class="metric"><div>APEX HEIGHT</div><strong id="apex">–</strong><small>Above field tiles</small></article><article class="metric"><div>OPENING CLEARANCE</div><strong id="clearance">–</strong><small id="clearanceNote">Full ball, through tilted plane</small></article></div>
 </div>
-<aside class="control-card"><div class="control-title"><div><span class="eyebrow">MATCH CONTROLS</span><h2>Tune the shot</h2></div><span class="tiny-pill" id="modified">BASELINE</span></div><div class="control-scroll"><div class="section-label">TARGETING</div><div id="targetControls"></div><div class="fixed-field-note">HIVE fixed from FIRST CAD · 30° scoring pose.</div><div class="section-label">TURRET</div><div id="primaryControls"></div>
+<aside class="control-card"><div class="control-title"><div><span class="eyebrow">MATCH CONTROLS</span><h2>Tune the shot</h2></div><span class="tiny-pill" id="modified">LIVE</span></div><div class="control-scroll"><div class="section-label">TARGETING</div><div id="targetControls"></div><div class="fixed-field-note">HIVE fixed from FIRST CAD · 30° scoring pose.</div><div class="section-label">TURRET</div><div id="primaryControls"></div>
 <div class="range-robot-summary" id="rangeRobotSummary"></div><button class="button" id="editRobot">Configure in The Pits</button>
 </div><div class="control-footer"><span class="yellow-dot"></span> Predictions need real-world calibration.</div></aside></div>
 <div class="analysis-row"><article class="chart-card"><div class="card-header"><div><div class="eyebrow">FLIGHT ANALYSIS</div><h2>Follow the trajectory</h2></div><div class="legend"><span class="current-key">Current</span><span id="traceLegend" class="baseline-key" hidden>Comparison</span></div></div><svg id="trajectory" viewBox="0 0 800 270" role="img" aria-label="Side-view trajectory graph with horizontal distance and height in meters"></svg><div class="chart-footer"><span id="rangeText"></span><span id="crossingText"></span></div></article><article class="insight-card"><div class="eyebrow">SHOT DIAGNOSTIC</div><h2 id="shotStatus">Opening entry</h2><div id="statusDescription"></div><div class="insight-rule"></div><h3>Why the backspin?</h3><p id="spinExplanation"></p><button class="text-button" id="openModel">Inspect the contact model</button></article></div>
 </section>
-<section id="compare" class="panel"><div class="pagehead"><div><div class="eyebrow">EXPERIMENT LOG</div><h1>Compare the tradeoffs</h1><p>Choose up to three saved robots to compare with the current robot.</p></div></div><div class="saved-setup-heading"><div><h2>Saved setups</h2><p id="comparisonSelectionNote" class="muted" aria-live="polite"></p></div></div><div class="compare-layout"><div id="savedSetups" class="setup-list"></div><div class="comparison-wrap"><table id="comparisonTable"></table></div></div><p class="muted">Setups and observations are stored only in this browser. Export them to share with the team.</p></section>
+<section id="compare" class="panel">
+ <div class="pagehead"><div><h1>Compare bots</h1><p id="comparisonSelectionNote" class="muted" aria-live="polite"></p></div></div>
+ <div class="garage-layout">
+  <details class="bot-sidebar" open><summary>Bots</summary><div id="savedSetups" class="bot-list"></div></details>
+  <div class="comparison-wrap"><table id="comparisonTable"></table></div>
+ </div>
+</section>
 <section id="calibration" class="panel">
  <div class="pagehead"><div><h1>Settings</h1></div><div class="inline-actions">
   <button type="button" class="button" id="importTop">Import</button>
@@ -73,9 +95,8 @@
   </div>
   <span class="team-footer-date">Last updated <time datetime="2026-11-23">November 23, 2026</time></span>
 </footer><div id="toast" role="status"></div><input id="importFile" type="file" accept=".json,.csv,application/json,text/csv" hidden>
-<dialog id="garageDialog"><div class="dialog-heading"><h2>Robot garage</h2><button id="closeGarage" type="button" class="button">Close</button></div><div id="garageList"></div>
- <form id="newRobotForm"><h3>New robot</h3><label>Robot name<input id="newRobotName" required maxlength="60"></label><label>Turret design<select id="newRobotDesign"></select></label><button class="launch-button" type="submit">Create robot</button></form>
+<dialog id="garageDialog">
+ <form id="newRobotForm"><h2>New bot</h2><label>Bot name<input id="newRobotName" required maxlength="60"></label><label>Pollen launcher <select id="newRobotDesign"></select></label><div class="inline-actions"><button class="launch-button" type="submit">Create bot</button><button id="closeGarage" type="button" class="button">Cancel</button></div></form>
 </dialog>
-<dialog id="shareDialog"><h2>Share robots and settings</h2><div class="inline-actions"><button id="shareImport" class="button">Import</button><button id="shareExport" class="button">Export</button><button id="closeSharing" class="button">Close</button></div></dialog>
 <dialog id="transferDialog"><form id="transferForm"><h2 id="transferTitle"></h2><div id="transferItems"></div><p id="transferError" role="alert"></p><div class="inline-actions"><button class="launch-button" id="applyTransfer"></button><button class="button" type="button" id="cancelTransfer">Cancel</button></div></form></dialog>
 <script type="module" src="app.mjs"></script></body></html>
