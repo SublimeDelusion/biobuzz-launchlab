@@ -1,0 +1,8 @@
+{
+ "source": "FTC 17097 mentor's competition observations in this conversation",
+ "scope": "Qualitative recollection; not a measured sample of shots or robots",
+ "reported": "More than half the robots seen had more than half their shots spin out; some balls bounced off the floor and continued out of the arena.",
+ "validation_target": "Support the chain of CELL entry, spin-related escape, field-floor impact, spin-to-translation transfer, and subsequent travel without artificial early termination.",
+ "not_inferred": ["No hard-coded failure probability", "No population success-rate estimate", "No restitution or friction fitted from the reported proportions"],
+ "still_needed": "Measured entry speed, spin, impact location and rebound footage for quantitative calibration."
+}

@@ -1,0 +1,29 @@
+{
+  "source": "https://ftc-resources.firstinspires.org/ftc/field/field-cad-step",
+  "version": "v26-27.2",
+  "manual": "TU10 Figure 9-10 and 9-11",
+  "cadUnits": "millimeters after STEPCAF import",
+  "coordinates": "Onshape Y up; field tile tops Y=0; centerline section at X=324.0623 mm through upward blue CELL",
+  "floorSegmentYZmm": [
+    [
+      1355.7316,
+      -489.2518
+    ],
+    [
+      1206.5066,
+      -230.7865
+    ]
+  ],
+  "frontRibInnerApexYZmm": [
+    1663.53992,
+    -291.3033
+  ],
+  "centerlineClearDepthMm": 298.45,
+  "tiltDegrees": 30,
+  "manualRoundedOpeningBottomIn": 53.5,
+  "manualRoundedOpeningTopIn": 65.6,
+  "manualOpeningWidthIn": 20,
+  "manualOpeningHeightIn": 14,
+  "manualShoulderHeightIn": 7.61,
+  "limits": "2D rigid centerline tray; molded rib/skin thickness, gabled clearance away from centerline, and corner curves are simplified. Target placement and tilt are fixed. CAD centerline lip and roof edges replace prior invented target height."
+}

@@ -1,0 +1,30 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {newLab,competitionHoodSetup,loadSavedConfiguration,normalize,paramsFor} from '../docs/lab-state.mjs';
+import {launch,flight} from '../docs/physics.mjs';
+test('team setup loads through the normal setup path and brackets the CELL at four feet',()=>{
+ const lab=newLab();
+ loadSavedConfiguration(lab,competitionHoodSetup());
+ const p=paramsFor(normalize(lab));
+ assert.deepEqual([p.supportedPair,p.rpm,p.angle,p.arc,p.gap,p.wheelD],[1,4500,75,15,20,2]);
+ const shot=flight(p,launch(p),true);
+ assert.equal(shot.ended,'settled in CELL');
+ assert.ok(launch(p).w*30/Math.PI>1000);
+ const fast={...p,rpm:5000}, free=flight(fast,launch(fast));
+ assert.ok(free.entry.u>p.targetTall*.0254/2+launch(fast).geo.r);
+});
+test('legacy Butte save and active shooter recover the hub mount while preserving the unknown gap',()=>{
+ const lab=newLab();
+ const old={...competitionHoodSetup(),supportedPair:0,height:.3556,rpm:4400,throatGap:68};
+ loadSavedConfiguration(lab,old);
+ lab.setups=[{name:'Butte Comp Settings',params:old}];
+ delete lab.hubMountRevision;
+ const upgraded=normalize(lab);
+ assert.equal(paramsFor(upgraded).supportedPair,1);
+ loadSavedConfiguration(upgraded,upgraded.setups[0].params);
+ const p=paramsFor(upgraded);
+ assert.equal(p.throatGap,68);
+ assert.equal(flight(p,launch(p),true).entered,true);
+ upgraded.robots.original.supportedPair=0;
+ assert.equal(normalize(upgraded).robots.original.supportedPair,0);
+});
