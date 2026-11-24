@@ -344,33 +344,22 @@
   #pits .turret-card { align-self: stretch; }
 }
 
-.pit-ammo-row { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; margin-bottom: 12px; }
+.pit-ammo-row { display: flex; flex-wrap: nowrap; align-items: center; gap: 12px; margin-bottom: 12px; }
 .pit-ammo-row .ammo-enabled {
-  position: relative;
-  margin: 0;
-  --ammo-color: #f4d44d;
-  --ammo-ink: #211900;
-}
-.pit-ammo-row .ammo-enabled[data-ball="nectar"] { --ammo-color: #dd5052; --ammo-ink: #130405; }
-.pit-ammo-row .ammo-enabled input { position: absolute; opacity: 0; }
-.pit-ammo-row .ammo-enabled span {
-  display: block;
-  padding: 6px 9px;
-  border: 1px solid var(--ammo-color);
-  border-radius: 5px;
-  color: var(--ammo-color);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 0 auto;
   font-size: 13px;
-  font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
 }
-.pit-ammo-row .ammo-enabled input:checked + span { color: var(--ammo-ink); background: var(--ammo-color); }
-.pit-ammo-row .ammo-enabled input:focus-visible + span { outline: 2px solid white; outline-offset: 2px; }
-.pit-launch-settings h4, .pit-quick-settings h4 {
-  margin: 15px 0 8px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--line);
-  font-size: 14px;
-}
+.pit-ammo-row .ammo-enabled input { margin: 0; accent-color: #f4d44d; }
+.pit-ammo-row .ammo-enabled[data-ball="nectar"] input { accent-color: #dd5052; }
+#simulator.no-ammo .visual-column,
+#simulator.no-ammo .range-diagnostic,
+#simulator.no-ammo .control-card { display: none; }
+#simulator.no-ammo .range-controls { grid-column: -2 / -1; }
 #ammoDesign, #activeRobot, .wheel-preset-label select, .compare-dropdown select, #newRobotDesign {
   appearance: none;
   padding-right: 29px;

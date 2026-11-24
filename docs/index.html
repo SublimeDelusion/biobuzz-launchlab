@@ -40,10 +40,11 @@
   <label><input type="radio" name="pitAmmo" value="pollen" checked><span>Pollen</span></label>
   <label><input type="radio" name="pitAmmo" value="nectar"><span>Nectar</span></label>
  </div>
- <label class="ammo-enabled" data-ball="pollen"><input id="ammoEnabled" type="checkbox" aria-label="Enable Pollen"><span id="ammoEnabledLabel">Enable</span></label></div>
+ <label class="ammo-enabled" data-ball="pollen"><input id="ammoEnabled" type="checkbox" aria-label="Enable Pollen"><span>Enabled</span></label></div>
  <div id="ammoConfig">
   <label class="ammo-design">Launcher type <select id="ammoDesign"></select></label>
-  <section class="pit-launch-settings"><h4>Launch settings</h4><div id="pitLaunchControls"></div></section><section class="pit-quick-settings"><h4>Quick settings</h4><div id="pitQuickControls"></div></section>
+  <details class="advanced pit-launch-settings" name="pit-settings" open><summary><span>Launch settings</span><span class="disclosure-hint" aria-hidden="true"></span></summary><div id="pitLaunchControls"></div></details>
+  <details class="advanced pit-quick-settings" name="pit-settings"><summary><span>Launcher settings</span><span class="disclosure-hint" aria-hidden="true"></span></summary><div id="pitQuickControls"></div></details>
   <div id="pitControls"></div>
  </div>
 </aside></div></article></div></section>
@@ -67,6 +68,7 @@
     <label><input type="radio" name="rangeAmmo" value="nectar"><span>Nectar</span></label>
    </div>
   </div>
+  <p id="rangeAmmoNotice" class="control-note" hidden>This bot has no enabled ammo. Enable Pollen or Nectar in The Pits.</p>
  </section>
  <article class="insight-card range-diagnostic" aria-labelledby="shotStatus">
   <div class="eyebrow">SHOT DIAGNOSTIC</div>

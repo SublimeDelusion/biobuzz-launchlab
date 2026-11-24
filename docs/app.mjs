@@ -1,4 +1,4 @@
-import {BALLS,BALL_PROPERTIES,FIELD_PROPERTIES,pickProperties,captureRobot,makeRobot,migrateGarage,robotFromSetup,initializeAmmo,availableAmmo,rangeAmmo,botDirty,savedAmmo} from './garage.mjs';
+import {BALLS,BALL_PROPERTIES,FIELD_PROPERTIES,pickProperties,captureRobot,makeRobot,migrateGarage,robotFromSetup,initializeAmmo,rangeAmmo,botDirty,savedAmmo} from './garage.mjs';
 import {bundle,readShare} from './sharing.mjs';
 import {MAX_COMPARISONS} from './saved-setups.mjs';
 import {CONTACT_MODEL} from './impact-materials.mjs';
@@ -37,9 +37,8 @@ for(const ball of BALLS){
 }
 Object.assign(profiles.nectar.globals,pickProperties(profiles.pollen.globals,FIELD_PROPERTIES));
 profiles.nectar.globals.materials=profiles.pollen.globals.materials;
-state=profiles[activeRobot.pitAmmo??rangeAmmo(activeRobot,state.ball)];
+state=profiles[activeRobot.pitAmmo??rangeAmmo(activeRobot,state.ball)??state.ball];
 loadSavedConfiguration(state,activeRobot.drafts[state.ball]);
-const disclosureState=read('biobuzz-disclosures',{});
 let p,result,trace,scene,pitView,clock,pitTime=0,pitPlaying=true,pitHold=0,last=performance.now(),activePanel='pits',toastTimer;
 function toast(s){$('#toast').textContent=s;$('#toast').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('visible'),4000);}
 function persist(){
@@ -59,10 +58,13 @@ const isRim=k=>['wheelDepth','outerWheelDepth'].includes(k);
 const diameterMM=k=>state.robots[state.active][k==='outerWheelDepth'?'outerD':'wheelD']*25.4;
 function value(k,scope){if(isRim(k))return diameterMM(k)-2*wheelDepth(state.robots[state.active],k==='outerWheelDepth');if(state.active==='differential'&&k==='outerRpm'){const r=state.robots.differential,q=state.ranges.differential;return q.rpm;}const obj=scope==='global'?state.globals:BALLS.includes(scope)?profiles[scope].globals:scope==='range'?state.ranges[state.active]:state.robots[state.active];return (k==='height'?state.height:k==='distance'?state.distance:obj[k])/scale(k);}
 let controlSerial=0;function controls(keys,scope){return keys.map(k=>{const uid=scope+'-'+k+'-'+controlSerial++;const [label,min,max,step,unit]=limits(k,scope),v=value(k,scope);return `<div class="parameter"><div class="parameter-heading"><label for="${uid}">${label}</label><div class="value-field"><input id="${uid}" data-setting="${k}" data-scope="${scope}" aria-label="${scope==='global'?'Global ':''}${label}" type="number" min="${min}" max="${max}" step="${step}" value="${Number(v.toFixed(5))}"><span>${unit}</span></div></div><input type="range" ${['durometer','outerDurometer'].includes(k)?`list="hardness-${k}"`:""} data-setting="${k}" data-scope="${scope}" min="${min}" max="${max}" step="${step}" value="${v}" aria-label="${label} slider" style="--fill:${(v-min)/(max-min)*100}%"></div>`;}).join('');}
-function disclosure(label,body,key,open=false,extraClass=''){const saved=disclosureState[key];return `<details class="advanced ${extraClass}" data-disclosure="${esc(key)}" ${(saved??open)?'open':''}><summary><span>${label}</span><span class="disclosure-hint" aria-hidden="true"></span></summary>${body}</details>`;}
-function group(label,keys,scope='robot',open=false){return disclosure(label,controls(keys,scope),`${scope}:${state.active}:${label}`,open);}
+function disclosure(label,body,key,extraClass=''){
+ return `<details class="advanced ${extraClass}" name="pit-settings" data-pit-section="${esc(key)}"><summary><span>${label}</span><span class="disclosure-hint" aria-hidden="true"></span></summary>${body}</details>`;
+}
+function group(label,keys,scope='robot'){return disclosure(label,controls(keys,scope),`${scope}:${state.active}:${label}`);}
 
-function wheelSection(outer=false){const dualKey=outer?'outerDual':'dual',dual=!!state.robots[state.active][dualKey];const title=state.active==='differential'?(outer?'Rear wheel':'Front wheel'):'Wheels',diameterKey=outer?'outerD':'wheelD',hardnessKey=outer?'outerDurometer':'durometer',depthKey=outer?'outerWheelDepth':'wheelDepth',selected=selectedWheelPreset(state.robots[state.active],outer),groups=[...new Set(WHEEL_CHOICES.map(q=>q.group))];return disclosure(title,`<div role="group" aria-label="${title}"><label class="wheel-preset-label">Wheel preset<select data-wheel-preset="${outer?'rear':'front'}" aria-label="${title} preset">${groups.map(group=>`<optgroup label="${group}">${WHEEL_CHOICES.filter(q=>q.group===group).map(q=>`<option value="${q.id}" ${selected===q.id?'selected':''}>${esc(q.label)}</option>`).join('')}</optgroup>`).join('')}<option value="custom" ${selected==='custom'?'selected':''}>Custom wheel</option></select></label><label class="toggle-line"><input type="checkbox" data-dual="${dualKey}" ${dual?'checked':''}> Dual wheels</label>${dual?controls([outer?'outerGap':'gap'],'robot'):''}${controls([diameterKey,hardnessKey,depthKey],'robot')}<datalist id="hardness-${hardnessKey}">${WHEEL_PRESETS.map(q=>`<option value="${q.shore}" label="${q.name}"></option>`).join('')}</datalist><p class="control-note">Rim size is the rigid center’s outside diameter. Wheel spacing is the clear gap between paired tires.</p></div>`,`pit-panel:${state.active}:wheel:${outer}`,false,'wheel-section');}
+
+function wheelSection(outer=false){const dualKey=outer?'outerDual':'dual',dual=!!state.robots[state.active][dualKey];const title=state.active==='differential'?(outer?'Rear wheel':'Front wheel'):'Wheels',diameterKey=outer?'outerD':'wheelD',hardnessKey=outer?'outerDurometer':'durometer',depthKey=outer?'outerWheelDepth':'wheelDepth',selected=selectedWheelPreset(state.robots[state.active],outer),groups=[...new Set(WHEEL_CHOICES.map(q=>q.group))];return disclosure(title,`<div role="group" aria-label="${title}"><label class="wheel-preset-label">Wheel preset<select data-wheel-preset="${outer?'rear':'front'}" aria-label="${title} preset">${groups.map(group=>`<optgroup label="${group}">${WHEEL_CHOICES.filter(q=>q.group===group).map(q=>`<option value="${q.id}" ${selected===q.id?'selected':''}>${esc(q.label)}</option>`).join('')}</optgroup>`).join('')}<option value="custom" ${selected==='custom'?'selected':''}>Custom wheel</option></select></label><label class="toggle-line"><input type="checkbox" data-dual="${dualKey}" ${dual?'checked':''}> Dual wheels</label>${dual?controls([outer?'outerGap':'gap'],'robot'):''}${controls([diameterKey,hardnessKey,depthKey],'robot')}<datalist id="hardness-${hardnessKey}">${WHEEL_PRESETS.map(q=>`<option value="${q.shore}" label="${q.name}"></option>`).join('')}</datalist><p class="control-note">Rim size is the rigid center’s outside diameter. Wheel spacing is the clear gap between paired tires.</p></div>`,`pit-panel:${state.active}:wheel:${outer}`,'wheel-section');}
 
 function syncWheelPresets(){$$('[data-wheel-preset]').forEach(el=>el.value=selectedWheelPreset(state.robots[state.active],el.dataset.wheelPreset==='rear'));}
 
@@ -76,7 +78,12 @@ function renderControls(){
  let html='';
  if(gearing)html=wheelSection(false)+wheelSection(true);
  else html+=wheelSection()+(d==='spring'?group('Spring carriage',['springPreload','springK','springTravel','rampLength','rampEnd'],'robot')+disclosure('Flywheel inertia',`<label class="toggle-line"><input id="flywheel" type="checkbox" ${r.flywheel?'checked':''}> Add two 82 mm flywheel discs</label><p class="control-note">Stores rotational energy to reduce wheel slowdown during a shot. Uses estimated inertia and motor recovery, not a measured torque curve.</p><p id="flywheelNote" class="control-note"></p>`,state.active+':flywheel'):group('Hood shape',['hoodRadius','arc'],'robot'))+disclosure('Guide surface',`<div class="surface-presets">${Object.entries(presets).map(([key,preset])=>`<button type="button" data-surface="${key}" class="${r.surface===key?'active':''}" aria-pressed="${r.surface===key}">${esc(preset.name)}</button>`).join('')}</div><p id="guideEffectNote" class="control-note"></p>`,'pit-panel:'+d+':guide-surface')+group('Contact estimates',['muWheel','muBack',...(r.surface==='tape'?['stripWidth','stripSpacing']:r.surface==='rails'?['railWidth','railSpacing']:[])],'robot');
+ const expanded=$('#pitControls details[open]')?.dataset.pitSection;
  $('#pitControls').innerHTML=html;
+ if(expanded){
+  const replacement=$$('#pitControls details').find(section=>section.dataset.pitSection===expanded);
+  (replacement??$('.pit-launch-settings')).open=true;
+ }
  $('#primaryControls').innerHTML=controls(launchKeys,'range');
  $('#targetControls').innerHTML=controls(['distance'],'range');
  $('#globalControls').innerHTML=controls(FIELD_PROPERTIES.filter(key=>key!=='materials'),'global');
@@ -124,8 +131,6 @@ function commitControl(el){
   material[prop]=v;persist();clearTimeout(timer);timer=setTimeout(()=>{timer=null;update();},80);
  }
 }
-document.addEventListener('click',e=>{const summary=e.target.closest('summary'),el=summary?.parentElement;if(!el?.dataset?.disclosure)return;disclosureState[el.dataset.disclosure]=!el.open;try{localStorage.setItem('biobuzz-disclosures',JSON.stringify(disclosureState));}catch{}},true);
-document.addEventListener('toggle',e=>{const el=e.target;if(!el.isConnected||!el.dataset?.disclosure)return;disclosureState[el.dataset.disclosure]=el.open;try{localStorage.setItem('biobuzz-disclosures',JSON.stringify(disclosureState));}catch{}},true);
 installNumberEditing(document,{handles:isLabControl,commit:commitControl,restore:restoreControl});
 document.addEventListener('change',e=>{if(e.target.dataset.wheelPreset){const q=WHEEL_CHOICES.find(q=>q.id===e.target.value);if(q){const outer=e.target.dataset.wheelPreset==='rear',r=state.robots[state.active];r[outer?'outerD':'wheelD']=q.diameter;r[outer?'outerDurometer':'durometer']=q.shore;r[outer?'outerWheelDepth':'wheelDepth']=q.depth;renderControls();update();}return;}if(e.target.dataset.dual){const r=state.robots[state.active];r[e.target.dataset.dual]=Number(e.target.checked);renderControls();update();return;}if(e.target.id==='flywheel'){state.robots[state.active].flywheel=Number(e.target.checked);update();}if(e.target.dataset.material){const k=e.target.dataset.material;if(e.target.checked)state.globals.materials[k]=k==='tile'?{e:CONTACT_MODEL.floorRestitution,mu:CONTACT_MODEL.floorFriction}:{e:state.globals.restitution,mu:state.globals.wallFriction};else delete state.globals.materials[k];renderMaterials();update();}});
 document.addEventListener('click',e=>{const g=e.target.closest('[data-gear]');if(g){state.robots.differential.gearRatio=Number(g.dataset.gear);update();return;}const b=e.target.closest('[data-surface]');if(b){const r=state.robots[state.active];r.surface=b.dataset.surface;r.muBack=presets[r.surface].mu;renderControls();update();}});
@@ -139,7 +144,7 @@ function switchRobot(id){
  if(!bot||bot===activeRobot)return;
  persist();
  activeRobot=bot;
- const ammo=rangeAmmo(bot,bot.preferredAmmo??state.ball);
+ const ammo=rangeAmmo(bot,bot.preferredAmmo??state.ball)??state.ball;
  state=profiles[activePanel==='pits'?(bot.pitAmmo??ammo):ammo];
  refreshRobot();
 }
@@ -162,7 +167,6 @@ function renderCard(){
  enable.checked=activeRobot.enabled[state.ball];
  enable.setAttribute('aria-label','Enable '+ballName(state.ball));
  enable.parentElement.dataset.ball=state.ball;
- $('#ammoEnabledLabel').textContent=enable.checked?'Enabled':'Enable';
  $('#ammoConfig').hidden=!activeRobot.enabled[state.ball];
  $('#ammoDesign').value=state.active;
  renderRobotOptions();
@@ -172,6 +176,11 @@ function renderRobotOptions(){
  select.innerHTML=garage.map(bot=>`<option value="${esc(bot.id)}">${esc(bot.draftName||'Untitled bot')}</option>`).join('');
  select.value=activeRobot.id;
  const currentAmmo=rangeAmmo(activeRobot,state.ball);
+ const rangeUnavailable=currentAmmo===undefined;
+ $('#simulator').classList.toggle('no-ammo',rangeUnavailable);
+ $('#rangeAmmoNotice').hidden=!rangeUnavailable;
+ $('#takeRange').disabled=rangeUnavailable;
+ $('#takeRange').title=rangeUnavailable?'Enable Pollen or Nectar first':'Take to Range';
  $$('#rangeAmmo input').forEach(input=>{
   input.checked=input.value===currentAmmo;
   input.disabled=!activeRobot.enabled[input.value];
@@ -191,13 +200,7 @@ $('#pitAmmoTabs').onchange=e=>{
  switchAmmo(e.target.value);
 };
 $('#ammoEnabled').onchange=e=>{
- const enabled=e.target.checked;
- if(!enabled&&availableAmmo(activeRobot).length===1){
-  e.target.checked=true;
-  toast('Keep at least one ammo type enabled.');
-  return;
- }
- activeRobot.enabled[state.ball]=enabled;
+ activeRobot.enabled[state.ball]=e.target.checked;
  renderCard();persist();
 };
 const designOptions=DESIGNS.map(design=>`<option value="${design.id}">${esc(design.name)}</option>`).join('');
@@ -216,13 +219,13 @@ $('#robotName').oninput=e=>{
  renderRobotOptions();persist();if(activePanel==='compare')renderCompare();
 };
 $('#traceRobot').onchange=e=>{traceIds[state.ball]=e.target.value;update();};
-function showPanel(id){if(timer){clearTimeout(timer);timer=null;update();}activePanel=id;if(id==='simulator'||id==='compare'){switchAmmo(rangeAmmo(activeRobot,activeRobot.preferredAmmo??state.ball));}else if(id==='pits'&&activeRobot.pitAmmo){switchAmmo(activeRobot.pitAmmo);}$$('.panel').forEach(el=>el.classList.toggle('active',el.id===id));$$('.navtab').forEach(el=>{el.classList.toggle('active',el.dataset.panel===id||el.dataset.panel==='calibration'&&id==='model');el.setAttribute('aria-current',(el.dataset.panel===id||el.dataset.panel==='calibration'&&id==='model')?'page':'false');});if(id==='pits'){pitView?.resize();}if(id==='simulator'){scene?.resize();clock.replay();}if(id==='compare')renderCompare();window.scrollTo({top:0,behavior:'smooth'});}
+function showPanel(id){if(timer){clearTimeout(timer);timer=null;update();}activePanel=id;if(id==='simulator'||id==='compare'){switchAmmo(rangeAmmo(activeRobot,activeRobot.preferredAmmo??state.ball)??state.ball);}else if(id==='pits'&&activeRobot.pitAmmo){switchAmmo(activeRobot.pitAmmo);}$$('.panel').forEach(el=>el.classList.toggle('active',el.id===id));$$('.navtab').forEach(el=>{el.classList.toggle('active',el.dataset.panel===id||el.dataset.panel==='calibration'&&id==='model');el.setAttribute('aria-current',(el.dataset.panel===id||el.dataset.panel==='calibration'&&id==='model')?'page':'false');});if(id==='pits'){pitView?.resize();}if(id==='simulator'){scene?.resize();clock.replay();}if(id==='compare')renderCompare();window.scrollTo({top:0,behavior:'smooth'});}
 $$('.navtab').forEach(b=>b.onclick=()=>showPanel(b.dataset.panel));$('#takeRange').onclick=()=>showPanel('simulator');$('#editRobot').onclick=()=>showPanel('pits');$('#openModel').onclick=()=>showPanel('model');$('.brand').onclick=e=>{e.preventDefault();showPanel('pits');};
 function update(){p=paramsFor(state);const target=garage.find(robot=>robot.id!==activeRobot.id&&robot.id===traceIds[state.ball]&&savedAmmo(robot,state.ball));trace=target?simulate(withOfficialField({...target.saved[state.ball],...state.globals})):null;result=simulate(p);result.timeline??={samples:[],duration:0,exitTime:0,basketTime:0,events:[]};if(clock)clock.setTimeline(result.timeline);else clock=new ShotClock(result.timeline);clock.loop=$('#loop').checked;clock.override=$('#speed').value==='auto'?null:Number($('#speed').value);$('#timeline').max=result.timeline.duration;if(scene){scene.ghost=Boolean(trace);scene.build(p,result,trace);}pitView?.build(p,result);pitTime=0;pitHold=0;const {L,free,shot}=result;syncGear();updateContactNotes();$('#pitMetrics').innerHTML=`<div><span>EXIT VELOCITY</span><strong>${fmt(L.v,2)} <small>m/s</small></strong></div><div><span>${L.w<0?'FORWARD SPIN':'BACKSPIN'}</span><strong>${fmt(Math.abs(L.w)*30/Math.PI,0)} <small>RPM</small></strong></div><div><span>CONTACT TIME</span><strong>${fmt((L.contactTime??L.t)*1000,1)} <small>ms</small></strong></div><div><span>LOADED PATH</span><strong>${fmt((L.contactDistance??L.length)*1000,1)} <small>mm</small></strong></div>`;if(L.catapult)$('#pitMetrics').innerHTML=`<div><span>STORED SPRING ENERGY</span><strong>${fmt(L.storedEnergy,2)} <small>J</small></strong></div><div><span>EXIT VELOCITY</span><strong>${fmt(L.v,2)} <small>m/s</small></strong></div><div><span>ESTIMATED BALL SPIN</span><strong>${fmt(L.w*30/Math.PI,0)} <small>RPM</small></strong></div><div><span>RELEASE ANGLE</span><strong>${fmt(p.angle,1)} <small>°</small></strong></div>`;
  $('#exitSpeed').innerHTML=fmt(L.v/.3048,1)+'<em>ft/s</em>';$('#exitMetric').textContent=L.catapult?fmt(L.v,2)+' m/s · '+fmt(L.storedEnergy,2)+' J stored spring energy':fmt(L.v,2)+' m/s · wheel surface '+fmt(L.U,1)+' m/s';$('#spinLabel').textContent=L.w<0?'FORWARD SPIN':'BACKSPIN';$('#spinRpm').innerHTML=fmt(Math.abs(L.w)*30/Math.PI,0)+'<em>RPM</em>';$('#spinRatio').textContent='Signed spin ratio ωr/v = '+fmt(L.w*L.geo.r/Math.max(.01,L.v),2);$('#apex').innerHTML=fmt(free.max,2)+'<em>m</em>';$('#clearance').innerHTML=shot.minClear==null?'—':fmt(shot.minClear*1000,0)+'<em>mm</em>';$('#clearanceNote').textContent=shot.minClear==null?'No entrance crossing':'Full-sphere entrance clearance';$('#shotStatus').textContent=shot.status==='Settled in CELL'?'Predicted retained score':shot.status==='Escaped CELL'?'Bounce-out / spin-out':shot.status;$('#statusDescription').textContent=!L.valid?(L.reason||'Invalid contact geometry'):shot.leftField?(shot.exited?'The ball escaped the CELL':'The ball missed the CELL')+(shot.firstFloorTime!==null?', bounced on the tile, and cleared the projected perimeter.':' and cleared the projected perimeter before touching the tile.'):shot.exited?'The ball entered, then escaped the CELL. Follow the spin marker through its next impact.':shot.ended==='settled in CELL'?'The modeled ball comes to rest inside the CELL. A predicted retained score is still an uncalibrated estimate.':'Entry alone does not establish a retained score. Inspect the trajectory and complete collision sequence.';$('#spinExplanation').textContent=state.active==='differential'?'The rear pair is powered and the front wheel is geared down. A faster rear surface produces forward torque; the shared contact time and grip determine the spin that develops. '+differentialTractionNote(L)+'':state.active==='catapult'?'The spring pushes the arm up. Cam rotation presses it down until the follower reaches the cliff. Spring force, arm inertia, gravity and cup friction determine the release speed and spin.':state.active==='underhand'?'The wheel above and inside the bend drives the ball upward and forward along the lower guide. Its contact torque generates forward spin; guide friction can add or brake that spin.':state.active==='spring'?'The powered wheels above the ball drive it against the stationary guide. Their torque opposes that of our original inner-wheel design. Guide friction, spring travel, and wheel slip determine the resulting spin.':'Powered-wheel traction and hood friction each change translation and rotation. Backer friction can change sign as relative slip changes; lower friction is not a fixed spin multiplier.';if(state.active!=='differential')$('#spinExplanation').textContent+=' '+guideSpinNote(L)+' A frictionless guide does not cancel the powered wheel’s torque.';$('#sceneScale').textContent=`Distance ${fmt(p.distance/.3048,1)} ft · exit ${fmt(p.height/.0254,1)} in · fixed FIRST HIVE`;$('#modelStatus').textContent=state.history.some(x=>x.type==='fit')?'Exploratory fit · unvalidated':'Uncalibrated model';if(!L.valid){$('#exitSpeed').textContent='—';$('#spinRpm').textContent='—';$('#pitMetrics').innerHTML='<p>'+esc(L.reason||'Invalid contact geometry')+'</p>'; }persist();if(activePanel==='compare')renderCompare();}
 $('#autoCamera').onchange=e=>scene.autoCamera=e.target.checked;for(const [id,mult]of [['zoomIn',1.25],['zoomOut',.8]])$('#'+id).onclick=()=>{scene.autoCamera=false;$('#autoCamera').checked=false;if(scene.camera)scene.camera.scale=Math.max(50,Math.min(6500,scene.camera.scale*mult));};$('#fitShot').onclick=()=>{scene.autoCamera=false;$('#autoCamera').checked=false;scene.fit();};$('#loop').onchange=e=>clock.loop=e.target.checked;$('#speed').onchange=e=>clock.override=e.target.value==='auto'?null:Number(e.target.value);$('#play').onclick=()=>clock.time>=clock.timeline.duration?clock.replay():clock.toggle();$('#replay').onclick=()=>clock.replay();$('#stepBack').onclick=()=>clock.step(-1);$('#stepForward').onclick=()=>clock.step(1);$('#timeline').oninput=e=>clock.seek(Number(e.target.value));$('#pitPlay').onclick=()=>{pitPlaying=!pitPlaying;$('#pitPlay').textContent=pitPlaying?'Pause':'Resume';};$('#pitReplay').onclick=()=>{pitTime=0;pitHold=0;pitPlaying=true;$('#pitPlay').textContent='Pause';};
-document.addEventListener('keydown',e=>{if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;if(activePanel==='simulator'){if(e.code==='Space'){e.preventDefault();clock.toggle();}if(e.key===',')clock.step(-1);if(e.key==='.')clock.step(1);}});
-function tick(now){const dt=Math.min(.15,(now-last)/1000);last=now;if(result&&!document.hidden){if(activePanel==='pits'){if(pitPlaying){const end=result.timeline.exitTime+(result.L.resetTime??.035);let left=dt,rate=.05;while(left>0&&pitTime<end){rate=pitTime<=result.timeline.exitTime?autoRate(pitTime,result.timeline):.5;const h=Math.min(left,.005);pitTime=Math.min(end,pitTime+h*rate);left-=h;}$('#pitSpeed').textContent=rate.toFixed(2)+'×';if(pitTime>=end){pitHold+=dt;if(pitHold>.65){pitTime=0;pitHold=0;}}}pitView?.animateAt(pitTime);pitView?.render();}if(activePanel==='simulator'){clock.advance(dt);scene?.animateAt(clock.time);scene?.render();const phase=shotPhase(clock.time,clock.timeline);$('#play').textContent=clock.playing?'Pause':'Resume';$('#play').setAttribute('aria-pressed',String(!clock.playing));$('#timeline').value=clock.time;$('#timecode').textContent=clock.time.toFixed(2)+' s';$('#speedReadout').textContent=(clock.override??autoRate(clock.time,clock.timeline)).toFixed(2)+'×';$('#viewTitle').textContent=phase==='contact'?'TURRET CONTACT':phase==='flight'?'FOLLOW THE FLIGHT':result.shot.exited&&clock.time>clock.timeline.escapeTime?'FOLLOWING THE ESCAPE':'CELL INTERACTION';$$('[data-stage]').forEach(el=>el.classList.toggle('active',el.dataset.stage===phase));const b=scene?.ball;if(b){$('#liveVelocity').textContent=fmt(Math.hypot(b.vx,b.vy),2)+' m/s';$('#liveSpin').textContent=(b.w<0?'↻ Forward ':b.w>0?'↺ Backspin ':'')+fmt(Math.abs(b.w)*30/Math.PI,0)+' RPM';}const event=clock.timeline.events.findLast(e=>e.t<=clock.time);$('#interactionNote').textContent=phase==='contact'?(b?.feeding?'Vertical center feed':state.active==='catapult'?['','Cam presses arm down','Follower at cam cliff','Spring pushes arm up','Release / reset'][Math.round(b?.catStage??4)]:'Computed wheel contact and ball spin'):event&&clock.time-event.t<.3?event.name+' impulse · '+fmt(event.jn,3)+' N·s':phase==='flight'?'Gravity + drag + Magnus':'HIVE contact · uncalibrated material estimates';Object.assign($('#viewport').dataset,{phase,time:clock.time.toFixed(6),duration:clock.timeline.duration.toFixed(6),playing:String(clock.playing),hiveRestitution:p.restitution,design:p.design});}}requestAnimationFrame(tick);}
+document.addEventListener('keydown',e=>{if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;if(activePanel==='simulator'&&activeRobot.enabled[state.ball]){if(e.code==='Space'){e.preventDefault();clock.toggle();}if(e.key===',')clock.step(-1);if(e.key==='.')clock.step(1);}});
+function tick(now){const dt=Math.min(.15,(now-last)/1000);last=now;if(result&&!document.hidden){if(activePanel==='pits'){if(pitPlaying){const end=result.timeline.exitTime+(result.L.resetTime??.035);let left=dt,rate=.05;while(left>0&&pitTime<end){rate=pitTime<=result.timeline.exitTime?autoRate(pitTime,result.timeline):.5;const h=Math.min(left,.005);pitTime=Math.min(end,pitTime+h*rate);left-=h;}$('#pitSpeed').textContent=rate.toFixed(2)+'×';if(pitTime>=end){pitHold+=dt;if(pitHold>.65){pitTime=0;pitHold=0;}}}pitView?.animateAt(pitTime);pitView?.render();}if(activePanel==='simulator'&&activeRobot.enabled[state.ball]){clock.advance(dt);scene?.animateAt(clock.time);scene?.render();const phase=shotPhase(clock.time,clock.timeline);$('#play').textContent=clock.playing?'Pause':'Resume';$('#play').setAttribute('aria-pressed',String(!clock.playing));$('#timeline').value=clock.time;$('#timecode').textContent=clock.time.toFixed(2)+' s';$('#speedReadout').textContent=(clock.override??autoRate(clock.time,clock.timeline)).toFixed(2)+'×';$('#viewTitle').textContent=phase==='contact'?'TURRET CONTACT':phase==='flight'?'FOLLOW THE FLIGHT':result.shot.exited&&clock.time>clock.timeline.escapeTime?'FOLLOWING THE ESCAPE':'CELL INTERACTION';$$('[data-stage]').forEach(el=>el.classList.toggle('active',el.dataset.stage===phase));const b=scene?.ball;if(b){$('#liveVelocity').textContent=fmt(Math.hypot(b.vx,b.vy),2)+' m/s';$('#liveSpin').textContent=(b.w<0?'↻ Forward ':b.w>0?'↺ Backspin ':'')+fmt(Math.abs(b.w)*30/Math.PI,0)+' RPM';}const event=clock.timeline.events.findLast(e=>e.t<=clock.time);$('#interactionNote').textContent=phase==='contact'?(b?.feeding?'Vertical center feed':state.active==='catapult'?['','Cam presses arm down','Follower at cam cliff','Spring pushes arm up','Release / reset'][Math.round(b?.catStage??4)]:'Computed wheel contact and ball spin'):event&&clock.time-event.t<.3?event.name+' impulse · '+fmt(event.jn,3)+' N·s':phase==='flight'?'Gravity + drag + Magnus':'HIVE contact · uncalibrated material estimates';Object.assign($('#viewport').dataset,{phase,time:clock.time.toFixed(6),duration:clock.timeline.duration.toFixed(6),playing:String(clock.playing),hiveRestitution:p.restitution,design:p.design});}}requestAnimationFrame(tick);}
 function download(name,data,type){const url=URL.createObjectURL(new Blob([data],{type})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 let transferMode,transferItems=[];
 const ballName=ball=>ball==='nectar'?'Nectar':'Pollen';
@@ -310,7 +313,6 @@ $('#transferForm').onsubmit=e=>{
     robot.drafts[setup.params.ball]=clone(setup.params);
     robot.saved[setup.params.ball]=clone(setup.params);
    }
-   if(!BALLS.some(ball=>flags[ball]))flags[first.params.ball]=true;
    robot.enabled={...flags};
    robot.savedEnabled={...flags};
    garage.push(robot);
@@ -373,7 +375,7 @@ $('#deleteBot').onclick=()=>{
   garage.push(blank);
  }
  activeRobot=garage[0];
- state=profiles[activeRobot.pitAmmo??rangeAmmo(activeRobot,state.ball)];
+ state=profiles[activeRobot.pitAmmo??rangeAmmo(activeRobot,state.ball)??state.ball];
  refreshRobot();
 };
 $('#saveConfig').onclick=()=>{
@@ -389,12 +391,13 @@ $('#saveConfig').onclick=()=>{
 function renderCompare(){
  const options=garage.filter(bot=>savedAmmo(bot,state.ball));
  const selected=options.filter(robot=>state.comparisonIds.includes(robot.id));
- const cols=[{name:(activeRobot.draftName||'Untitled bot')+' · Current',params:p},...selected.map(robot=>({name:robot.name,params:robot.saved[state.ball]}))];
+ const current=activeRobot.enabled[state.ball]?[{name:(activeRobot.draftName||'Untitled bot')+' · Current',params:p}]:[];
+ const cols=[...current,...selected.map(robot=>({name:robot.name,params:robot.saved[state.ball]}))];
  const labels=['Turret','Drive wheel RPM','Launch angle','Distance to HIVE','Exit height','Wheel diameter','Exit velocity','Signed spin','Apex','Throat gap (rest)','Opening clearance','Predicted result'];
  const values=cols.map(col=>summary(col.params));
  $('#comparisonTable').innerHTML='<thead><tr><th>Result</th>'+cols.map(col=>'<th>'+esc(col.name)+'</th>').join('')+'</tr></thead><tbody>'+labels.map((label,index)=>'<tr><td>'+esc(label)+'</td>'+values.map(row=>'<td>'+esc(row[index])+'</td>').join('')+'</tr>').join('')+'</tbody>';
  $('#compareCount').textContent=cols.length;
- $('#comparisonSelectionNote').textContent=`${selected.length} of ${MAX_COMPARISONS} saved bots selected for ${ballName(state.ball)}.`;
+ $('#comparisonSelectionNote').textContent=`${selected.length} of ${MAX_COMPARISONS} saved bots selected for ${ballName(state.ball)}.${current.length?'':' The current bot has no enabled ammo.'}`;
  $('#savedSetups').innerHTML=garage.map(bot=>{
   const compatible=Boolean(savedAmmo(bot,state.ball));
   const checked=compatible&&state.comparisonIds.includes(bot.id);
