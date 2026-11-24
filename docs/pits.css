@@ -343,3 +343,43 @@
   #pits .garage-layout { grid-template-rows: minmax(0, 1fr); }
   #pits .turret-card { align-self: stretch; }
 }
+
+.pit-ammo-row { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; margin-bottom: 12px; }
+.pit-ammo-row .ammo-enabled {
+  position: relative;
+  margin: 0;
+  --ammo-color: #f4d44d;
+  --ammo-ink: #211900;
+}
+.pit-ammo-row .ammo-enabled[data-ball="nectar"] { --ammo-color: #dd5052; --ammo-ink: #130405; }
+.pit-ammo-row .ammo-enabled input { position: absolute; opacity: 0; }
+.pit-ammo-row .ammo-enabled span {
+  display: block;
+  padding: 6px 9px;
+  border: 1px solid var(--ammo-color);
+  border-radius: 5px;
+  color: var(--ammo-color);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.pit-ammo-row .ammo-enabled input:checked + span { color: var(--ammo-ink); background: var(--ammo-color); }
+.pit-ammo-row .ammo-enabled input:focus-visible + span { outline: 2px solid white; outline-offset: 2px; }
+.pit-launch-settings h4, .pit-quick-settings h4 {
+  margin: 15px 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+#ammoDesign, #activeRobot, .wheel-preset-label select, .compare-dropdown select, #newRobotDesign {
+  appearance: none;
+  padding-right: 29px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cpath d='m3 5 4 4 4-4' fill='none' stroke='%23cbd8d9' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+.range-controls .range-diagnostic { display: block; padding: 14px 18px; }
+.range-diagnostic h2 { margin: 5px 0; font-size: 19px; }
+.range-diagnostic details { margin-top: 8px; }
+.range-diagnostic summary { color: var(--muted); cursor: pointer; font-size: 13px; }
+.range-diagnostic details p { margin: 6px 0; }
