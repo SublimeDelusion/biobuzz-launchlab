@@ -1,13 +1,18 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#111719"><title>BIOBUZZ Launch Lab · FTC 17097</title><meta name="description" content="A mechanical and physics exploration lab for FTC Team 17097. Tune turrets, study ball flight, and compare trajectories."><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><path fill=%22%23d5ed65%22 d=%22M32 2 59 17v30L32 62 5 47V17z%22/></svg>"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="pits.css"><script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#111719"><title>BIOBUZZ Launch Lab · FTC 17097</title><meta name="description" content="A mechanical and physics exploration lab for FTC Team 17097. Tune turrets, study ball flight, and compare trajectories."><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><path fill=%22%23d5ed65%22 d=%22M32 2 59 17v30L32 62 5 47V17z%22/></svg>"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="pits.css"><link rel="stylesheet" href="mobile.css"><script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script></head>
 <body>
-<header class="topbar"><a class="brand" href="#" aria-label="BIOBUZZ Launch Lab home"><svg width="38" height="42" viewBox="0 0 38 42" aria-hidden="true"><path d="M19 2 36 12v19L19 41 2 31V12Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="m11 15 8-5 8 5v10l-8 5-8-5Z" fill="currentColor"/><path d="M19 15v10M15 18l8 4m0-4-8 4" stroke="#151b1d" stroke-width="2"/></svg><span>BIOBUZZ <b>LAUNCH LAB</b></span></a><div class="team-tag">FTC <strong>17097</strong><span>2026–27 SEASON</span></div><nav class="mainnav" aria-label="Lab workspaces"><button class="navtab active" data-panel="pits">The Pits</button><button class="navtab" data-panel="simulator">The Range</button><button class="navtab" data-panel="compare">Compare <span id="compareCount">0</span></button><span class="model-status" id="modelStatus">Uncalibrated model</span></nav><div class="header-actions"><button class="navtab settings-toggle" data-panel="calibration" type="button" aria-label="Settings" title="Settings">
+<header class="topbar"><a class="brand" href="#" aria-label="BIOBUZZ Launch Lab home"><svg width="38" height="42" viewBox="0 0 38 42" aria-hidden="true"><path d="M19 2 36 12v19L19 41 2 31V12Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="m11 15 8-5 8 5v10l-8 5-8-5Z" fill="currentColor"/><path d="M19 15v10M15 18l8 4m0-4-8 4" stroke="#151b1d" stroke-width="2"/></svg><span>BIOBUZZ <b>LAUNCH LAB</b></span></a><div class="team-tag">FTC <strong>17097</strong><span>2026–27 SEASON</span></div><button type="button" id="mobileMenu" class="button mobile-only" aria-label="Open navigation" aria-controls="workspaceNav" aria-expanded="false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button><nav id="workspaceNav" class="mainnav" aria-label="Lab workspaces"><button class="navtab active" data-panel="pits">The Pits</button><button class="navtab" data-panel="simulator">The Range</button><button class="navtab" data-panel="compare">Compare <span id="compareCount">0</span></button><button class="navtab mobile-only" data-panel="calibration">Settings</button><span class="model-status" id="modelStatus">Uncalibrated model</span></nav><div class="header-actions"><button class="navtab settings-toggle" data-panel="calibration" type="button" aria-label="Settings" title="Settings">
     <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2h4l.6 2.4 1.4.8 2.4-.7 2 3.5-1.8 1.7v1.6l1.8 1.7-2 3.5-2.4-.7-1.4.8L14 19h-4l-.6-2.4-1.4-.8-2.4.7-2-3.5 1.8-1.7V9.7L3.6 8l2-3.5 2.4.7 1.4-.8z" transform="translate(0 1.5)"/><circle cx="12" cy="12" r="2.7"/></svg><span>Settings</span>
   </button>
 </div></header>
 
 <main>
-<section id="pits" class="panel active">
+<section id="pits" class="panel active" data-mobile-view="preview">
+<nav class="mobile-only mobile-view-switch" aria-label="The Pits views">
+ <button type="button" data-mobile-view-button="bots" aria-pressed="false">Bots</button>
+ <button type="button" data-mobile-view-button="preview" aria-pressed="true">Preview</button>
+ <button type="button" data-mobile-view-button="edit" aria-pressed="false">Bot settings</button>
+</nav>
 <div class="pit-heading"><div><span class="eyebrow">THE PITS / FTC 17097</span><h1>Build the shot.</h1><p>Configure a bot and take it to the field.</p></div></div>
 <div class="garage-layout">
  <aside class="bot-sidebar" aria-labelledby="pitBotTitle">
@@ -35,7 +40,7 @@
   </button>
   <button type="button" id="takeRange" class="launch-button">Take to Range</button>
 </div></div>
-<div class="pit-grid"><div class="pit-visuals"><div class="mechanical-view"><div class="view-caption"><span>CONTACT STUDY / 2D CUTAWAY</span><div><button id="pitPlay" class="button">Pause</button><button id="pitReplay" class="button">Replay</button><span class="speed-badge" id="pitSpeed">0.80×</span></div></div><div id="pitCutaway" aria-label="Slow motion mechanical cutaway"></div></div><div id="pitMetrics" class="pit-metrics"></div><p class="control-note">Launch angle is measured above horizontal. The ball feeds vertically through the turret center; the mechanism turns it toward the release direction.</p></div><aside class="pit-controls"><h3>Bot settings</h3>
+<div class="pit-grid"><div class="pit-visuals"><div class="mechanical-view"><div class="view-caption"><span>CONTACT STUDY / 2D CUTAWAY</span><div><button id="pitPlay" class="button">Pause</button><button id="pitReplay" class="button">Replay</button><span class="speed-badge" id="pitSpeed">0.80×</span></div></div><div id="pitCutaway" aria-label="Slow motion mechanical cutaway"></div></div><div id="pitMetrics" class="pit-metrics"></div><p class="control-note">Launch angle is measured above horizontal. The ball feeds vertically through the turret center; the mechanism turns it toward the release direction.</p></div><aside class="pit-controls"><div class="pit-settings-heading"><h3>Bot settings</h3><button class="button mobile-only" type="button" data-mobile-view-button="preview" id="doneBotSettings">Done</button></div>
  <div class="pit-ammo-row"><div id="pitAmmoTabs" class="ball-toggle" role="group" aria-label="Ammo settings">
   <label><input type="radio" name="pitAmmo" value="pollen" checked><span>Pollen</span></label>
   <label><input type="radio" name="pitAmmo" value="nectar"><span>Nectar</span></label>
@@ -48,13 +53,18 @@
   <div id="pitControls"></div>
  </div>
 </aside></div></article></div></section>
-<section id="simulator" class="panel">
+<section id="simulator" class="panel" data-mobile-view="shot">
+<nav class="mobile-only mobile-view-switch" aria-label="The Range views">
+ <button type="button" data-mobile-view-button="shot" aria-pressed="true">Shot</button>
+ <button type="button" data-mobile-view-button="select" aria-pressed="false">Bot &amp; ammo</button>
+ <button type="button" data-mobile-view-button="tune" aria-pressed="false">Tune shot</button>
+</nav>
 <div class="pagehead"><div><div class="eyebrow">THE RANGE <span>/</span> <span id="rangeDesign">ORIGINAL CURVED HOOD</span></div><h1>Test your turret</h1><p>One shot. From wheel contact to the tilted HIVE.</p></div></div>
 <div class="workspace"><div class="visual-column"><div class="viewport-card">
 <div class="viewport-toolbar cinematic-toolbar"><div class="shot-stages" aria-label="Shot phases"><span data-stage="contact" class="active">Contact</span><i></i><span data-stage="flight">Flight</span><i></i><span data-stage="basket">Basket</span></div><span class="speed-badge" id="speedReadout" aria-label="Current playback speed">0.05×</span></div>
 <div id="viewport" aria-label="Continuous 2D shot playback"><div class="scene-title"><span id="viewTitle">TURRET CONTACT</span><small id="sceneScale">One timeline · physical seconds · SI world coordinates</small></div><div class="live-state"><span id="liveVelocity">0.3 m/s</span><span id="liveSpin">0 RPM</span></div><div id="interactionNote" class="interaction-note">Wheel contact · uncalibrated model</div><div id="renderError" hidden>Animation is unavailable. Physics controls and results remain available.</div></div>
-<div class="view-options"><label><input id="autoCamera" type="checkbox" checked> Auto Camera</label><label class="compare-dropdown">Compare to <select id="traceRobot" aria-label="Compare to bot"></select></label><label><input id="loop" type="checkbox" checked> Auto replay</label><button id="zoomOut" class="button" aria-label="Zoom out">−</button><button id="zoomIn" class="button" aria-label="Zoom in">+</button><button id="fitShot" class="contact-study">Fit whole shot</button></div>
-<div class="transport cinematic-transport"><button id="play" class="launch-button">Pause</button><button id="replay" class="icon-button" aria-label="Replay complete shot" title="Replay complete shot">↺</button><button id="stepBack" class="frame-button" aria-label="Previous physics frame" title="Step back 1 ms of simulation time">Step −</button><button id="stepForward" class="frame-button" aria-label="Next physics frame" title="Step forward 1 ms of simulation time">Step +</button><input id="timeline" class="play-progress" type="range" min="0" max="2" step=".00001" value="0" aria-label="Complete shot timeline"><span id="timecode" class="mono">0 ms</span><select id="speed" aria-label="Playback speed override"><option value="auto" selected>Auto speed</option><option value=".01">0.01×</option><option value=".05">0.05×</option><option value=".1">0.1×</option><option value=".25">0.25×</option><option value=".5">0.5×</option><option value="1">1×</option></select></div>
+<div class="view-options" id="playbackOptions"><label><input id="autoCamera" type="checkbox" checked> Auto Camera</label><label class="compare-dropdown">Compare to <select id="traceRobot" aria-label="Compare to bot"></select></label><label><input id="loop" type="checkbox" checked> Auto replay</label><button id="zoomOut" class="button" aria-label="Zoom out">−</button><button id="zoomIn" class="button" aria-label="Zoom in">+</button><button id="fitShot" class="contact-study">Fit whole shot</button></div>
+<div class="transport cinematic-transport"><button id="play" class="launch-button">Pause</button><button id="replay" class="icon-button" aria-label="Replay complete shot" title="Replay complete shot">↺</button><button id="stepBack" class="frame-button" aria-label="Previous physics frame" title="Step back 1 ms of simulation time">Step −</button><button id="stepForward" class="frame-button" aria-label="Next physics frame" title="Step forward 1 ms of simulation time">Step +</button><button id="mobilePlaybackOptions" type="button" class="button mobile-only" aria-expanded="false" aria-controls="playbackOptions">Options</button><input id="timeline" class="play-progress" type="range" min="0" max="2" step=".00001" value="0" aria-label="Complete shot timeline"><span id="timecode" class="mono">0 ms</span><select id="speed" aria-label="Playback speed override"><option value="auto" selected>Auto speed</option><option value=".01">0.01×</option><option value=".05">0.05×</option><option value=".1">0.1×</option><option value=".25">0.25×</option><option value=".5">0.5×</option><option value="1">1×</option></select></div>
 </div>
 <div class="metric-grid"><article class="metric"><div>EXIT VELOCITY <span class="metric-icon">↗</span></div><strong id="exitSpeed">–</strong><small id="exitMetric">–</small></article><article class="metric"><div><span id="spinLabel">BACKSPIN</span> <span class="metric-icon">⟳</span></div><strong id="spinRpm">–</strong><small id="spinRatio">–</small></article><article class="metric"><div>APEX HEIGHT</div><strong id="apex">–</strong><small>Above field tiles</small></article><article class="metric"><div>OPENING CLEARANCE</div><strong id="clearance">–</strong><small id="clearanceNote">Full ball, through tilted plane</small></article></div>
 </div>
@@ -80,14 +90,23 @@
 <button class="button" id="editRobot">Configure in The Pits</button>
 </div><div class="control-footer"><span class="yellow-dot"></span> Predictions need real-world calibration.</div></section></aside></div>
 </section>
-<section id="compare" class="panel">
+<section id="compare" class="panel" data-mobile-view="bots">
+ <nav class="mobile-only mobile-view-switch" aria-label="Compare views">
+  <button type="button" data-mobile-view-button="bots" aria-pressed="true">Pick bots</button>
+  <button type="button" data-mobile-view-button="results" aria-pressed="false">Results</button>
+ </nav>
  <div class="pagehead"><div><h1>Compare bots</h1><p id="comparisonSelectionNote" class="muted" aria-live="polite"></p></div></div>
  <div class="garage-layout">
   <aside class="bot-sidebar" aria-labelledby="compareBotTitle"><h2 class="bot-sidebar-title" id="compareBotTitle">Bots</h2><div id="savedSetups" class="bot-list"></div></aside>
   <div class="comparison-wrap"><table id="comparisonTable"></table></div>
  </div>
 </section>
-<section id="calibration" class="panel">
+<section id="calibration" class="panel" data-mobile-view="physics">
+ <nav class="mobile-only mobile-view-switch" aria-label="Settings views">
+  <button type="button" data-mobile-view-button="physics" aria-pressed="true">Physics</button>
+  <button type="button" data-mobile-view-button="pollen" aria-pressed="false">Pollen</button>
+  <button type="button" data-mobile-view-button="nectar" aria-pressed="false">Nectar</button>
+ </nav>
  <div class="pagehead"><div><h1>Settings</h1></div><div class="inline-actions">
   <button type="button" class="button" id="importTop">Import</button>
   <button type="button" class="button" id="exportTop">Export</button>
@@ -99,8 +118,8 @@
    <button class="button" id="restorePhysics">Restore physics defaults</button>
   </article>
   <div class="ball-settings">
-   <article class="form-card"><h2>Pollen settings</h2><div id="pollenControls"></div></article>
-   <article class="form-card"><h2>Nectar settings</h2><div id="nectarControls"></div></article>
+   <article id="pollenSettings" class="form-card"><h2>Pollen settings</h2><div id="pollenControls"></div></article>
+   <article id="nectarSettings" class="form-card"><h2>Nectar settings</h2><div id="nectarControls"></div></article>
   </div>
  </div>
 </section>

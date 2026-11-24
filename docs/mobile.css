@@ -1,0 +1,203 @@
+.mobile-only { display: none; }
+
+@media (max-width: 760px) {
+  :root { --phone-header: calc(56px + env(safe-area-inset-top)); }
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    height: var(--phone-header);
+    min-height: 0;
+    padding: env(safe-area-inset-top) max(10px, env(safe-area-inset-right)) 0 max(10px, env(safe-area-inset-left));
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    background: #111719;
+  }
+  .topbar > .header-actions { display: none; }
+  #mobileMenu {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+  }
+  .topbar .mainnav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: max(8px, env(safe-area-inset-right));
+    width: min(240px, calc(100vw - 16px));
+    padding: 6px;
+    background: #1a2428;
+    border: 1px solid #435254;
+    border-radius: 8px;
+    box-shadow: 0 14px 28px #0008;
+  }
+  .topbar.menu-open .mainnav { display: grid; gap: 3px; }
+  .topbar .mainnav .navtab {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-size: 15px;
+  }
+  .topbar .mainnav .navtab.active { background: #2c392c; color: var(--lime); }
+
+  main {
+    width: 100%;
+    min-width: 0;
+    padding: 0 max(8px, env(safe-area-inset-right)) 16px max(8px, env(safe-area-inset-left));
+  }
+  .mobile-view-switch {
+    display: flex;
+    position: sticky;
+    top: var(--phone-header);
+    z-index: 20;
+    gap: 4px;
+    margin-bottom: 8px;
+    padding: 5px 0;
+    background: var(--bg);
+  }
+  .mobile-view-switch button {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 44px;
+    padding: 4px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: #172226;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .mobile-view-switch button[aria-pressed="true"] {
+    border-color: #62794c;
+    background: #29382a;
+    color: var(--lime);
+  }
+  .panel > .pagehead { margin: 10px 0; }
+  .panel > .pagehead h1 { margin: 2px 0; font-size: clamp(24px, 7.5vw, 34px); }
+  #pits .pit-heading, #simulator > .pagehead p { display: none; }
+  #simulator > .pagehead .eyebrow { font-size: 10px; overflow-wrap: anywhere; }
+
+  #pits .garage-layout { display: block; }
+  #pits:not([data-mobile-view="bots"]) .bot-sidebar,
+  #pits[data-mobile-view="bots"] .turret-card,
+  #pits[data-mobile-view="preview"] .pit-controls,
+  #pits[data-mobile-view="edit"] .pit-visuals { display: none; }
+  #pits .bot-sidebar {
+    min-height: min(360px, calc(100dvh - var(--phone-header) - 74px));
+    grid-template-rows: auto 1fr auto;
+  }
+  #garageList.bot-list, #savedSetups.bot-list { max-height: none; overflow: visible; }
+  .bot-list-row { min-height: 44px; font-size: 15px; }
+  .bot-sidebar-actions .button { min-height: 44px; padding-inline: 12px; }
+  #pits .turret-card-head { padding: 8px 10px; }
+  #pits .turret-card-head h2 { font-size: 20px; margin: 0; }
+  #pits .turret-card-head :is(p,.eyebrow,.card-edition),
+  #pits[data-mobile-view="edit"] .turret-card-head { display: none; }
+  #pits .pit-setup-toolbar { padding: 7px 9px; gap: 5px; }
+  #pits .robot-name-field { flex: 1 1 10rem; width: auto; min-width: 0; gap: 3px; }
+  #pits .robot-name-field label { position: absolute; clip-path: inset(50%); width: 1px; height: 1px; overflow: hidden; }
+  #robotName { width: 100%; min-height: 44px; padding: 5px; }
+  #pits .pit-config-actions { flex: 0 1 auto; width: auto; gap: 4px; }
+  #pits .pit-config-actions button { min-width: 44px; min-height: 44px; padding-inline: 8px; }
+  #pits[data-mobile-view="edit"] #takeRange { display: none; }
+  #pits .pit-grid { display: block; }
+  #pits .pit-visuals { position: static; padding: 6px; gap: 6px; }
+  #pitCutaway { height: clamp(170px, 38dvh, 340px); }
+  #pits .view-caption { padding: 5px 7px; gap: 3px; font-size: 10px; }
+  #pits .view-caption > div { display: flex; align-items: center; gap: 3px; }
+  #pitPlay, #pitReplay { min-height: 44px; min-width: 44px; padding: 4px; }
+  #pitSpeed { padding: 4px; }
+  #pits .pit-metrics > div { padding: 7px 8px; }
+  #pits .pit-metrics span { margin-bottom: 3px; }
+  #pits .pit-metrics strong { font-size: 19px; }
+  #pits .pit-visuals > .control-note { display: none; }
+  #pits .pit-controls {
+    min-height: calc(100dvh - var(--phone-header) - 133px);
+    max-height: none;
+    overflow: visible;
+    padding: 10px 12px;
+  }
+  .pit-settings-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  #pits .pit-controls h3 { margin: 0; }
+  #doneBotSettings { display: inline-block; min-height: 44px; }
+  #pits .pit-ammo-row { margin-top: 10px; }
+  .ball-toggle label span { min-height: 42px; display: flex; align-items: center; padding-inline: 10px; }
+  .pit-ammo-row .ammo-enabled { min-height: 44px; }
+
+  #simulator .workspace { display: block; }
+  #simulator:not([data-mobile-view="shot"]) .visual-column,
+  #simulator:not([data-mobile-view="select"]) .range-selection-card,
+  #simulator:not([data-mobile-view="tune"]) .control-card,
+  #simulator:not([data-mobile-view="shot"]) .range-diagnostic { display: none; }
+  #simulator.no-ammo :is(.visual-column,.control-card,.range-diagnostic) { display: none; }
+  #simulator.no-ammo .range-selection-card { display: block; }
+  #simulator[data-mobile-view="shot"] .range-controls { margin-top: 7px; }
+  #viewport { height: clamp(182px, 39dvh, 366px); }
+  #viewport .scene-title { left: 8px; top: 8px; }
+  #viewport .scene-title small { display: none; }
+  #viewport .live-state { right: 8px; top: 8px; }
+  .viewport-toolbar { padding: 7px 8px; min-height: 0; gap: 5px; }
+  .shot-stages { gap: 5px; font-size: 11px; }
+  .shot-stages i { width: 10px; }
+  #simulator:not(.playback-options-open) #playbackOptions,
+  #simulator:not(.playback-options-open) :is(#stepBack,#stepForward) { display: none; }
+  #mobilePlaybackOptions { display: inline-flex; align-items: center; }
+  .cinematic-transport { gap: 5px; padding: 5px 7px; }
+  .cinematic-transport :is(button,select) { min-height: 44px; }
+  .cinematic-transport #play { min-width: 55px; }
+  .cinematic-transport #replay { width: 44px; }
+  .cinematic-transport #timeline {
+    flex: 1 1 65%;
+    height: 22px;
+    background: linear-gradient(#536368, #536368) center / 100% 3px no-repeat;
+  }
+  .cinematic-transport #timecode { min-width: 3.5rem; text-align: right; }
+  #simulator .metric-grid { margin-top: 7px; gap: 5px; }
+  #simulator .metric { padding: 6px 8px; min-height: 0; }
+  #simulator .metric > div { font-size: 10px; }
+  #simulator .metric > strong { font-size: 19px; }
+  #simulator .metric > small { font-size: 10px; }
+  .range-controls .range-diagnostic { padding: 8px 10px; }
+  .range-selection-card, #simulator .control-scroll { padding: 12px; }
+
+  #compare[data-mobile-view="bots"] .comparison-wrap,
+  #compare[data-mobile-view="results"] .bot-sidebar { display: none; }
+  #compare .garage-layout { grid-template-columns: minmax(0, 1fr); }
+  #compare .comparison-wrap { min-width: 0; }
+  #comparisonTable tr > :first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: #172226;
+  }
+  #calibration .settings-layout,
+  #calibration .ball-settings,
+  #model .model-grid { display: block; }
+  #calibration[data-mobile-view="physics"] .ball-settings,
+  #calibration:not([data-mobile-view="physics"]) .global-settings,
+  #calibration:not([data-mobile-view="pollen"]) #pollenSettings,
+  #calibration:not([data-mobile-view="nectar"]) #nectarSettings { display: none; }
+  #calibration .pagehead { gap: 8px; }
+  #calibration .inline-actions { flex-wrap: wrap; }
+  #calibration .inline-actions button { min-height: 44px; }
+
+  .value-field input, input[type="text"], #newRobotName, select { font-size: 16px !important; }
+  .parameter { margin-bottom: 13px; }
+  .parameter input[type="range"] { height: 24px; background-size: 100% 4px; background-position: center; background-repeat: no-repeat; }
+  .parameter input[type="range"]::-webkit-slider-thumb { width: 17px; height: 17px; }
+  details.advanced > summary { min-height: 44px; }
+  dialog { width: calc(100% - 18px); max-width: 440px; max-height: calc(100dvh - 26px); padding: 13px; }
+  dialog button { min-height: 44px; }
+  .team-footer { flex-direction: row; padding: 8px 10px max(8px, env(safe-area-inset-bottom)); }
+  .team-footer img { width: 30px; height: 30px; }
+}
+@media (max-width: 389px) {
+  #pits .robot-name-field { flex-basis: 100%; }
+  #pits .pit-config-actions { margin-left: auto; }
+  #pits .view-caption > span { max-width: 100px; }
+}
